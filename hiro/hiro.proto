@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+message QRCodeRequest {
+  string content = 1;
+  enum ErrorCorrectionLevel {
+    L = 0;
+    M = 1;
+    Q = 2;
+    H = 3;
+  }
+  ErrorCorrectionLevel error_correction = 2;
+  enum Encoding {
+    AUTO = 0;
+    NUMERIC = 1;
+    ALPHA_NUMERIC = 2;
+    UNICODE = 3;
+  }
+  Encoding mode = 3;
+}
+
+message QRCodeResponse { string url = 1; }
+
+service Hiro {
+  rpc Create(QRCodeRequest) returns (QRCodeResponse) {}
+}
