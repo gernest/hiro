@@ -1,0 +1,17 @@
+version: '2'
+
+tasks:
+  embed_assets:
+    cmds:
+      - go-bindata -o assets/assets.gen.go -pkg assets -prefix assets/ assets/static/...
+    silent: true
+  embed_templates:
+    cmds:
+      - go-bindata -o templates/templates.gen.go -pkg templates -prefix templates/data templates/data/...
+    silent: true
+
+  assets:
+    deps: [embed_assets, embed_templates]
+    cmds:
+      - echo "generated embedded assets"
+    silent: true
