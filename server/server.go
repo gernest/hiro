@@ -6,9 +6,8 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/minio/minio-go"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/gernest/alien"
 	"github.com/gernest/hiro/access"
@@ -97,7 +96,7 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	mux.Use(User(l, jwt))
 	mux.Get("/", Home)
 	mux.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		prometheus.Handler().ServeHTTP(w, r)
+		promhttp.Handler().ServeHTTP(w, r)
 	})
 	api := mux.Group("/v1")
 

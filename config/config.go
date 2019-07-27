@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	homedir "github.com/minio/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v2"
 )

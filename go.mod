@@ -18,6 +18,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
 	github.com/minio/minio-go v6.0.14+incompatible
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nsqio/go-nsq v1.0.7
 	github.com/ory/ladon v0.8.10
 	github.com/pborman/uuid v1.2.0 // indirect
@@ -33,4 +34,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 	google.golang.org/grpc v1.22.0
 	gopkg.in/gorp.v1 v1.7.2 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 )
