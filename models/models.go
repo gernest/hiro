@@ -62,15 +62,10 @@ type Collection struct {
 	Color     string    `json:"color"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	id        string
 }
 
 func (c *Collection) ID() string {
-	if c.id != "" {
-		return c.id
-	}
-	c.id = c.UUID.String()
-	return c.id
+	return c.UUID.String()
 }
 
 type CollectionList struct {
