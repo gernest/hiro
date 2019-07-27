@@ -22,8 +22,6 @@ type Config struct {
 	Secret    string `yaml:"secret,omitempty"`
 	Host      string `yaml:"host,omitempty"`
 	ImageHost string `yaml:"image_host,omitempty"`
-	Minio     *Minio `yaml:"minio"`
-	NSQ       *NSQ   `yaml:"nsq"`
 }
 
 // Minio minio client settings.
@@ -87,21 +85,6 @@ func fromCli(ctx *cli.Context) *Config {
 		Host:      ctx.String("host"),
 		ImageHost: ctx.String("image-host"),
 	}
-	minioEndpoint := ctx.String("minio-endpoint")
-	if minioEndpoint != "" {
-		cfg.Minio = &Minio{
-			Endpoint:     minioEndpoint,
-			AccessKey:    ctx.String("minio-access-key"),
-			AccessSecret: ctx.String("minio-access-secret"),
-		}
-	}
-	nsqEndpoint := ctx.String("nsq-address")
-	if nsqEndpoint != "" {
-		cfg.NSQ = &NSQ{
-			LookupD: ctx.String("nsq-lookup"),
-			NSQD:    nsqEndpoint,
-		}
-	}
 	return cfg
 }
 
@@ -141,8 +124,5 @@ func (c *Config) Update(n *Config) {
 	}
 	if n.ImageHost != "" {
 		c.ImageHost = n.ImageHost
-	}
-	if n.Minio != nil {
-		c.Minio = n.Minio
 	}
 }

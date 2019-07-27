@@ -5,6 +5,7 @@ import (
 
 	"github.com/gernest/hiro/bus"
 	"github.com/jmoiron/sqlx"
+
 	// use postgres
 	_ "github.com/lib/pq"
 	"github.com/ory/ladon"

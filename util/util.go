@@ -12,11 +12,9 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/gernest/hiro/bus"
 	"github.com/ory/ladon"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/minio/minio-go"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 
@@ -35,8 +33,6 @@ type Context struct {
 	Logger    *zap.Logger
 	DB        *query.SQL
 	Claims    *jwt.StandardClaims
-	Minio     *minio.Client
-	NSQ       *bus.Producer
 	Warden    *ladon.Ladon
 }
 
@@ -62,12 +58,6 @@ func RequestContext(ctx context.Context) *Context {
 	}
 	if v := ctx.Value(keys.Session); v != nil {
 		c.Claims = v.(*jwt.StandardClaims)
-	}
-	if v := ctx.Value(keys.Minio); v != nil {
-		c.Minio = v.(*minio.Client)
-	}
-	if v := ctx.Value(keys.NSQ); v != nil {
-		c.NSQ = v.(*bus.Producer)
 	}
 	if v := ctx.Value(keys.Warden); v != nil {
 		c.Warden = v.(*ladon.Ladon)

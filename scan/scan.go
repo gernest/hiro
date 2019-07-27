@@ -36,11 +36,6 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
 	)
-	defer func() {
-		if ctx.NSQ != nil {
-			ctx.NSQ.PublishScan(ev)
-		}
-	}()
 	params := alien.GetParams(r)
 	pid := params.Get("uuid")
 	ev.ID = pid

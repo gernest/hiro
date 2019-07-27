@@ -6,14 +6,12 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/minio/minio-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/gernest/alien"
 	"github.com/gernest/hiro/access"
 	"github.com/gernest/hiro/accounts"
 	"github.com/gernest/hiro/assets"
-	"github.com/gernest/hiro/bus"
 	"github.com/gernest/hiro/collections"
 	"github.com/gernest/hiro/config"
 	"github.com/gernest/hiro/keys"
@@ -43,8 +41,6 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	mux := alien.New()
 	l, _ := zap.NewProduction()
 	jwt := &models.JWT{Secret: []byte(cfg.Secret)}
-	var nio *minio.Client
-	var err error
 	wares := []models.Item{
 		models.Item{Key: keys.DB, Value: db},
 		models.Item{Key: keys.LoggerKey, Value: l},
@@ -52,43 +48,11 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 		models.Item{Key: keys.Host, Value: cfg.Host},
 		models.Item{Key: keys.ImageHost, Value: cfg.ImageHost},
 	}
-	if cfg.Minio != nil {
-		l.Info("Detected minio, we will use minio as qrcode stowage")
-		m := cfg.Minio
-		nio, err = minio.New(m.Endpoint, m.AccessKey, m.AccessSecret, false)
-		if err != nil {
-			l.Fatal("initializing minio client",
-				zap.Error(err),
-			)
-		}
-		wares = append(wares, models.Item{Key: keys.Minio, Value: nio})
-		l.Info("connected to minio server", zap.String(
-			"endpoint", m.Endpoint,
-		))
-	}
 	warden, err := access.New(db.DB(), nil)
 	if err != nil {
 		l.Fatal("initializing warden",
 			zap.Error(err),
 		)
-	}
-
-	if cfg.NSQ != nil {
-		l.Info("Detected nsq, we will use nsq to broadcast messages")
-		b, err := bus.NewProducer(cfg.NSQ.NSQD)
-		if err != nil {
-			if err != nil {
-				l.Fatal("initializing nsq client",
-					zap.Error(err),
-				)
-			}
-		}
-		b.Logger = l
-		wares = append(wares, models.Item{Key: keys.NSQ, Value: b})
-		l.Info("connected to nsqlookupd", zap.String(
-			"endpoint", cfg.NSQ.LookupD,
-		))
-		warden.AuditLogger = access.NewAuditLogger(b)
 	}
 
 	wares = append(wares, models.Item{Key: keys.Warden, Value: warden})

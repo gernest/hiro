@@ -95,14 +95,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		log.Error("account.create save to db", zap.Error(err))
 		return
 	}
-	if ctx.Minio != nil {
-		if err = ctx.Minio.MakeBucket(a.UUID.String(), "us-east-1"); err != nil {
-			util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusBadRequest)
-			log.Error("creating bucket",
-				zap.String("bucket", a.UUID.String()), zap.Error(err))
-			return
-		}
-	}
 	if ctx.Warden != nil {
 		// we are creating access policy for the user to manage his/her profile.
 		for _, policy := range access.NewUserPolicies(a.UUID) {
