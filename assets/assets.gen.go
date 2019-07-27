@@ -91,7 +91,7 @@ func staticCssMainCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/main.css", size: 540, mode: os.FileMode(420), modTime: time.Unix(1520029941, 0)}
+	info := bindataFileInfo{name: "static/css/main.css", size: 540, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -111,7 +111,7 @@ func staticCssUikitMinCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/uikit.min.css", size: 244147, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/css/uikit.min.css", size: 244147, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -131,7 +131,7 @@ func staticImgFaviconIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/favicon.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/img/favicon.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -151,7 +151,7 @@ func staticImgIconPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/icon.png", size: 982, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/img/icon.png", size: 982, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -171,7 +171,7 @@ func staticImgTitlePng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/title.png", size: 3772, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/img/title.png", size: 3772, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -191,7 +191,7 @@ func staticJsMainJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/main.js", size: 2813472, mode: os.FileMode(420), modTime: time.Unix(1522498952, 0)}
+	info := bindataFileInfo{name: "static/js/main.js", size: 2813472, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -211,7 +211,7 @@ func staticJsMainJsMap() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/main.js.map", size: 140267, mode: os.FileMode(420), modTime: time.Unix(1522498952, 0)}
+	info := bindataFileInfo{name: "static/js/main.js.map", size: 140267, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -231,7 +231,7 @@ func staticJsUikitIconsMinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/uikit-icons.min.js", size: 60097, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/js/uikit-icons.min.js", size: 60097, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -251,7 +251,7 @@ func staticJsUikitMinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/uikit.min.js", size: 121816, mode: os.FileMode(420), modTime: time.Unix(1518866373, 0)}
+	info := bindataFileInfo{name: "static/js/uikit.min.js", size: 121816, mode: os.FileMode(420), modTime: time.Unix(1564218083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
