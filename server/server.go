@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"html/template"
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
@@ -15,14 +14,11 @@ import (
 	"github.com/gernest/hiro/collections"
 	"github.com/gernest/hiro/config"
 	"github.com/gernest/hiro/keys"
-	"github.com/gernest/hiro/meta"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/prom"
 	"github.com/gernest/hiro/qrcode"
 	"github.com/gernest/hiro/query"
 	"github.com/gernest/hiro/scan"
-	"github.com/gernest/hiro/templates"
-	"github.com/gernest/hiro/util"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 
@@ -91,30 +87,9 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	//static assets
 	s := gziphandler.GzipHandler(Static())
 
-	opts := []struct {
-		methods []string
-		route   string
-	}{
-		{
-			methods: []string{"GET", "HEAD"},
-			route:   "/static/css/*",
-		},
-		{
-			methods: []string{"GET", "HEAD"},
-			route:   "/static/js/*",
-		},
-		{
-			methods: []string{"GET", "HEAD"},
-			route:   "/static/img/*",
-		},
-	}
-	for _, v := range opts {
-		for _, method := range v.methods {
-			mux.AddRoute(method, v.route, func(w http.ResponseWriter, r *http.Request) {
-				s.ServeHTTP(w, r)
-			})
-		}
-	}
+	mux.AddRoute(http.MethodGet, "/static/*", func(w http.ResponseWriter, r *http.Request) {
+		s.ServeHTTP(w, r)
+	})
 	mux.NotFoundHandler(http.HandlerFunc(NotFound))
 	return prom.Wrap(mux)
 }
@@ -145,95 +120,18 @@ func Static() http.Handler {
 
 // Home renders the home page.
 func Home(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
-	log := ctx.Logger.With(
-		zap.String("url", r.URL.String()),
-	)
-	m := &meta.Meta{
-		OpenGraph: &meta.OpenGraph{
-			URL:         keys.WebsiteURL,
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-		Twitter: &meta.Twitter{
-			Card:        "summary",
-			Site:        "@bqservice",
-			Creator:     "@gernesti",
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-	}
-	mg, err := m.Map()
+	b, err := assets.Asset("static/index.html")
 	if err != nil {
-		log.Error("home.getting meta properties",
-			zap.Error(err),
-		)
+		w.Write([]byte(err.Error()))
+		return
 	}
-	err = templates.Write(w, "html/home.html", map[string]interface{}{
-		"meta":  mg,
-		"Title": "BQ: high performacne qrcode service",
-	})
-	if err != nil {
-		log.Error("rendering home page template",
-			zap.Error(err),
-		)
-	}
+	w.Write(b)
 }
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
-	m := &meta.Meta{
-		OpenGraph: &meta.OpenGraph{
-			URL:         keys.WebsiteURL,
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-		Twitter: &meta.Twitter{
-			Card:        "summary",
-			Site:        "@bqservice",
-			Creator:     "@gernesti",
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-	}
-	mg, err := m.Map()
-	if err != nil {
-		//TODO handle error
-	}
-	err = templates.Write(w, "html/home.html", map[string]interface{}{
-		"meta":        mg,
-		"Title":       "BQ: high performacne qrcode service",
-		"ActiveRoute": template.JS(r.URL.Path),
-	})
-	if err != nil {
-		//TODO handle error
-	}
+	http.NotFound(w, r)
 }
 
 func Privacy(w http.ResponseWriter, r *http.Request) {
-	m := &meta.Meta{
-		OpenGraph: &meta.OpenGraph{
-			URL:         keys.WebsiteURL,
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-		Twitter: &meta.Twitter{
-			Card:        "summary",
-			Site:        "@bqservice",
-			Creator:     "@gernesti",
-			Title:       keys.WebsiteTitle,
-			Description: keys.WebsiteDescription,
-		},
-	}
-	mg, err := m.Map()
-	if err != nil {
-		//TODO handle error
-	}
-	err = templates.Write(w, "html/privacy.html", map[string]interface{}{
-		"meta":        mg,
-		"Title":       "BQ: high performacne qrcode service",
-		"ActiveRoute": template.JS(r.URL.Path),
-	})
-	if err != nil {
-		//TODO handle error
-	}
+	http.NotFound(w, r)
 }
