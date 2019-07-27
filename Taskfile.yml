@@ -2,16 +2,29 @@ version: '2'
 
 tasks:
   embed_assets:
+    deps: [build_and_prep_ui]
     cmds:
       - go-bindata -o assets/assets.gen.go -pkg assets -prefix assets/ assets/static/...
+      - git add assets/
+      - git commit -m "[embed_assets] {{.BUILD_TIME}}"
+    vars:
+      BUILD_TIME:
+        sh: echo $(date +%F_%H-%M-%S)
+
     silent: true
   embed_templates:
     cmds:
       - go-bindata -o templates/templates.gen.go -pkg templates -prefix templates/data templates/data/...
     silent: true
 
-  assets:
-    deps: [embed_assets, embed_templates]
+  build_ui:
+    dir: ui/
     cmds:
-      - echo "generated embedded assets"
+      - yarn build
     silent: true
+  build_and_prep_ui:
+    deps: [build_ui]
+    silent: true
+    cmds:
+      - rm -r assets/static && mkdir assets/static
+      - cp -r ui/dist/ assets/static/
