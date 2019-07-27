@@ -11,8 +11,6 @@ import (
 const (
 	HomeBanner    = "home_banner"
 	MisssingToken = "missing_token"
-	BadFirstArg   = "bad_first_arg"
-	Changelog     = "changelog"
 )
 
 var tpl *template.Template

@@ -15,7 +15,12 @@ tasks:
   embed_templates:
     cmds:
       - go-bindata -o templates/templates.gen.go -pkg templates -prefix templates/data templates/data/...
+      - git add templates/
+      - git commit -m "[embed_templates] {{.BUILD_TIME}}"
     silent: true
+    vars:
+      BUILD_TIME:
+        sh: echo $(date +%F_%H-%M-%S)
 
   build_ui:
     dir: ui/
