@@ -28,3 +28,14 @@ tasks:
     cmds:
       - rm -r assets/static && mkdir assets/static
       - cp -r ui/dist/ assets/static/
+
+  build:
+    vars:
+      BUILD_HASH:
+        sh: git rev-parse --short  HEAD
+      BUILD_TIME:
+        sh: echo $(date +%F_%H-%M-%S)
+      BUILD_TAG:
+        sh: git describe --tags
+    cmds:
+      - go build -ldflags="-X main.commit={{.BUILD_HASH}} -X main.date={{.BUILD_TIME}} -X main.version={{.BUILD_TAG}}"

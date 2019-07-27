@@ -11,12 +11,12 @@ import (
 var (
 	commit  = "<>"
 	date    = "<>"
-	version = ""
+	version = "dev"
 )
 
 func main() {
 	a := cli.NewApp()
-	a.Name = "bq"
+	a.Name = "hiro"
 	a.Usage = "modern qrcode service"
 	a.EnableBashCompletion = true
 	a.Description = "zero hype, high performance qrcode service"
