@@ -1,0 +1,9 @@
+The first argument to {{.Command}} command  can either be a valid json string 
+or path to a json file.
+	
+This command allows piping from stdin too.
+	
+Example : 
+	bq {{.Command}} "{\"hello\":\"world\"}"
+	bq {{.Command}} hello.json
+	cat hello.json|bq {{.Command}}

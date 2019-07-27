@@ -1,0 +1,16 @@
+  Welcome to bq 
+
+  The zero hype, high performance qrcode service.
+		
+  Author  : {{.Author}} ({{.Email}})
+  Website : {{.Website}}
+  Docs 	  : {{.DocsWebsite}}
+  Source  : {{.Repository}}
+  Twitter : {{.Twitter}}
+  Build info
+	Version    : {{.Version}}
+	Build date : {{.BuildDate}}
+	Commit     : {{.Commit}}
+		
+  server started on  {{.Host}} in {{.Duration}}
+  

@@ -1,0 +1,7 @@
+  Version    : {{.Version}}
+  Build Date : {{.BuildDate}}
+  Commit     : {{.Commit}}
+  Go build info:
+    OS : {{.BuildInfo.GOOS}}
+    ARCH : {{.BuildInfo.GOARCH}}
+    VERSION : {{.BuildInfo.GOVERSION}}

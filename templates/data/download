@@ -1,0 +1,82 @@
+# downloads for {{.Version}}
+
+for verifying checksums, you will need first to download the binary of your
+choice ( see below) Then download the checksum file from here {{.DownloadChecksum}}
+in the same directory as the binary.
+
+os x
+```
+sha1sum -c {{.ChecksumFile}}
+```
+
+other nix*
+```
+sha256sum -c {{.ChecksumFile}}
+```
+
+## debian 
+
+os | arch | gpg |download
+---|------|-----|-------
+{{- range .Debs}}
+{{.Os}} | {{.Arch}} | {{.Sign}} |{{.Download}}
+{{- end}}
+
+After downloading the signature/checksum with the distribution please verify
+that you got the right stuff
+
+```
+{{range .Debs}}
+# {{.Name}}
+{{.VerifySign}}
+{{end}}
+```
+
+
+## arm 
+
+os | arch | gpg |download
+---|------|-----|-------
+{{- range .Arms}}
+{{.Os}} | {{.Arch}} | {{.Sign}} |{{.Download}}
+{{- end}}
+
+**verify**
+```
+{{range .Arms}}
+# {{.Name}}
+{{.VerifySign}}
+{{end}}
+```
+
+## rpm 
+
+os | arch | gpg |download
+---|------|-----|-------
+{{- range .Rpms}}
+{{.Os}} | {{.Arch}} | {{.Sign}} |{{.Download}}
+{{- end}}
+
+**verify**
+```
+{{range .Rpms}}
+# {{.Name}}
+{{.VerifySign}}
+{{end}}
+```
+
+## tarballs
+
+os | arch | gpg |download
+---|------|-----|-------
+{{- range .Tarbals}}
+{{.Os}} | {{.Arch}} | {{.Sign}} |{{.Download}}
+{{- end}}
+
+**verify**
+```
+{{range .Tarbals}}
+# {{.Name}}
+{{.VerifySign}}
+{{end}}
+```
