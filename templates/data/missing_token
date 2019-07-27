@@ -1,6 +1,0 @@
-  {{.Command}} requires authentication.
-
-  The client is not authenticated so please run the following command
-  to authenticate. 
-	
-    bq login
