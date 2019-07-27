@@ -97,7 +97,7 @@ func staticAssetManifestJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/asset-manifest.json", size: 791, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/asset-manifest.json", size: 791, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -117,7 +117,7 @@ func staticFaviconPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/favicon.png", size: 2849, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/favicon.png", size: 2849, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -137,7 +137,7 @@ func staticIconsIcon128x128Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/icons/icon-128x128.png", size: 1329, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/icons/icon-128x128.png", size: 1329, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -157,7 +157,7 @@ func staticIconsIcon192x192Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/icons/icon-192x192.png", size: 1856, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/icons/icon-192x192.png", size: 1856, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -177,7 +177,7 @@ func staticIconsIcon512x512Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/icons/icon-512x512.png", size: 5082, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/icons/icon-512x512.png", size: 5082, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -197,7 +197,7 @@ func staticIndexHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/index.html", size: 4631, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/index.html", size: 4631, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -217,7 +217,7 @@ func staticLayouts__basiclayoutB4fe1617AsyncJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/layouts__BasicLayout.b4fe1617.async.js", size: 100002, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/layouts__BasicLayout.b4fe1617.async.js", size: 100002, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -237,7 +237,7 @@ func staticLayouts__basiclayoutF5d355afChunkCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/layouts__BasicLayout.f5d355af.chunk.css", size: 64030, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/layouts__BasicLayout.f5d355af.chunk.css", size: 64030, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -257,7 +257,7 @@ func staticP__4043f99473fChunkCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/p__404.3f99473f.chunk.css", size: 765, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/p__404.3f99473f.chunk.css", size: 765, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -277,7 +277,7 @@ func staticP__4049f6ff434AsyncJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/p__404.9f6ff434.async.js", size: 46865, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/p__404.9f6ff434.async.js", size: 46865, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -297,7 +297,7 @@ func staticP__welcome08c98858AsyncJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/p__Welcome.08c98858.async.js", size: 539, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/p__Welcome.08c98858.async.js", size: 539, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -317,7 +317,7 @@ func staticUmiDa7228bdCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/umi.da7228bd.css", size: 66486, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/umi.da7228bd.css", size: 66486, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -337,7 +337,7 @@ func staticUmiE2b07db1Js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/umi.e2b07db1.js", size: 1261696, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/umi.e2b07db1.js", size: 1261696, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -357,7 +357,7 @@ func staticVendors1565362dAsyncJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/vendors.1565362d.async.js", size: 511208, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/vendors.1565362d.async.js", size: 511208, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -377,7 +377,7 @@ func staticVendors4ff4688cChunkCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/vendors.4ff4688c.chunk.css", size: 199555, mode: os.FileMode(420), modTime: time.Unix(1564221393, 0)}
+	info := bindataFileInfo{name: "static/vendors.4ff4688c.chunk.css", size: 199555, mode: os.FileMode(420), modTime: time.Unix(1564222288, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
