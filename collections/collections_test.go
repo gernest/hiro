@@ -14,10 +14,11 @@ import (
 )
 
 func TestCollections(t *testing.T) {
-	ctx, err := testutil.New("collections", "http://localhost:8000", "someSecret")
+	ctx, err := testutil.New("collections", "someSecret")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer ctx.Close()
 	t.Run("create", func(ts *testing.T) {
 		r := ctx.Req("POST", "/v1/collections", testutil.ReqData(
 			&models.CollectionReq{

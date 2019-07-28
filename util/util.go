@@ -44,12 +44,7 @@ func RequestContext(ctx context.Context) *Context {
 	if v := ctx.Value(keys.JwtKey); v != nil {
 		c.JWT = v.(*models.JWT)
 	}
-	if v := ctx.Value(keys.Host); v != nil {
-		c.Host = v.(string)
-	}
-	if v := ctx.Value(keys.ImageHost); v != nil {
-		c.ImageHost = v.(string)
-	}
+
 	if v := ctx.Value(keys.LoggerKey); v != nil {
 		c.Logger = v.(*zap.Logger)
 	}
@@ -81,95 +76,6 @@ func WriteJSON(w http.ResponseWriter, v interface{}, status int, h ...http.Heade
 	w.Header().Set(headers.ContentType, headers.ApplicationJSON)
 	w.WriteHeader(status)
 	w.Write(d)
-}
-
-// HostFlag is a flag for specifying the host on which the service is running.
-// It defaults to http://localhost:8000.
-func HostFlag() cli.Flag {
-	return cli.StringFlag{
-		Name:   "host",
-		Usage:  "connection string to postgres database",
-		EnvVar: "BQ_HOST",
-		Value:  "http://localhost:8000",
-	}
-}
-
-func ImageHostFlag() cli.Flag {
-	return cli.StringFlag{
-		Name:   "image-host",
-		Usage:  "dns resolvable url to where images are served",
-		EnvVar: "BQ_IMAGE_HOST",
-		Value:  "http://localhost:8011",
-	}
-}
-
-// ConnFlag returns a flag for specifying database connection string.
-func ConnFlag() cli.Flag {
-	return cli.StringFlag{
-		Name:   "db-conn",
-		Usage:  "connection string to postgres database",
-		EnvVar: "BQ_DB_CONN",
-	}
-}
-
-// DriverFlag returns a flag for specifying database driver.
-func DriverFlag() cli.Flag {
-	return cli.StringFlag{
-		Name:   "driver",
-		Usage:  "database driver to use",
-		EnvVar: "BQ_DB_DRIVER",
-		Value:  "postgres",
-	}
-}
-
-func SecretFlag() cli.Flag {
-	return cli.StringFlag{
-		Name:   "secret",
-		Usage:  "hmac jwt secret",
-		EnvVar: "BQ_JWT_SECRET",
-		Value:  "secret",
-	}
-}
-
-// HighlightFlag is syntax highlight flag.
-func HighlightFlag() cli.Flag {
-	return cli.BoolFlag{
-		Name:   "highlight",
-		Usage:  "Highlight output",
-		EnvVar: "BQ_HIGHLIGHT",
-	}
-}
-
-// MinioFlags flags for minio store.
-func MinioFlags() []cli.Flag {
-	return []cli.Flag{
-		cli.StringFlag{
-			Name:   "minio-endpoint",
-			EnvVar: "MINIO_ENDPOINT",
-		},
-		cli.StringFlag{
-			Name:   "minio-access-key",
-			EnvVar: "MINIO_ACCESS_KEY",
-		},
-		cli.StringFlag{
-			Name:   "minio-access-secret",
-			EnvVar: "MINIO_SECRET_KEY",
-		},
-	}
-}
-
-// NSQFlags flags for nsq.
-func NSQFlags() []cli.Flag {
-	return []cli.Flag{
-		cli.StringFlag{
-			Name:   "nsq-address",
-			EnvVar: "NSQ_ADDRESS",
-		},
-		cli.StringFlag{
-			Name:   "nsq-lookup",
-			EnvVar: "NSQLOOKUPD_ADDRESS",
-		},
-	}
 }
 
 // AddToken add bearer token to request header.

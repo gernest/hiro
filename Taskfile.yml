@@ -1,5 +1,9 @@
 version: '2'
 
+vars: 
+  HIRO_DB_CONN: "postgres://bq:bq@localhost/bq?sslmode=disable"
+  HIRO_JWT_SECRET: secret 
+
 tasks:
   embed_assets:
     deps: [build_and_prep_ui]
@@ -44,3 +48,17 @@ tasks:
         sh: git describe --tags
     cmds:
       - go build -ldflags="-X main.commit={{.BUILD_HASH}} -X main.date={{.BUILD_TIME}} -X main.version={{.BUILD_TAG}}"
+  migrate_up:
+    silent: true
+    cmds: 
+      - go  run ./scripts/migrate/main..go --db-conn={{.HIRO_DB_CONN}}  up
+  migrate_down:
+    silent: true
+    cmds: 
+      - go  run ./scripts/migrate/main..go --db-conn={{.HIRO_DB_CONN}}   down
+
+  test:
+    deps: [migrate_down,migrate_up]
+    silent: true
+    cmds: 
+      - HIRO_DB_CONN={{.HIRO_DB_CONN}} go test ./...

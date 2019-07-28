@@ -30,8 +30,8 @@ type Context struct {
 	items   []models.Item
 }
 
-func New(name, host, secret string) (*Context, error) {
-	conn := os.Getenv("BQ_DB_CONN")
+func New(name, secret string) (*Context, error) {
+	conn := os.Getenv("HIRO_DB_CONN")
 	db, err := query.New("postgres", conn)
 	if err != nil {
 		return nil, err
@@ -82,12 +82,21 @@ func New(name, host, secret string) (*Context, error) {
 			models.Item{Key: keys.DB, Value: db},
 			models.Item{Key: keys.LoggerKey, Value: l},
 			models.Item{Key: keys.JwtKey, Value: jwt},
-			models.Item{Key: keys.Host, Value: host},
-			models.Item{Key: keys.Minio, Value: nil},
 			models.Item{Key: keys.Session, Value: sd},
 			models.Item{Key: keys.Warden, Value: warden},
 		},
 	}, nil
+}
+
+func NewDB() (*query.SQL, error) {
+	s, err := query.New("postgres", os.Getenv("HIRO_DB_CONN"))
+	if err != nil {
+		return nil, err
+	}
+	// if err := s.Up(context.Background()); err != nil {
+	// 	return nil, err
+	// }
+	return s, nil
 }
 
 func request(items ...models.Item) func(string, string, io.Reader) *http.Request {
@@ -104,6 +113,13 @@ func request(items ...models.Item) func(string, string, io.Reader) *http.Request
 func ReqData(v interface{}) io.Reader {
 	b, _ := json.Marshal(v)
 	return bytes.NewReader(b)
+}
+
+func (c *Context) Close() error {
+	if err := c.DB.Down(context.Background()); err != nil {
+		return err
+	}
+	return c.DB.Close()
 }
 
 func (c *Context) SetHeader(r *http.Request) {

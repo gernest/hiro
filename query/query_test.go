@@ -17,7 +17,7 @@ func TestQuery(t *testing.T) {
 	}{
 		{
 			name: "postgres",
-			conn: os.Getenv("BQ_DB_CONN"),
+			conn: os.Getenv("HIRO_DB_CONN"),
 		},
 	}
 	for _, c := range drivers {
@@ -28,7 +28,7 @@ func TestQuery(t *testing.T) {
 func sandbox(name, conn string, t *testing.T) {
 	db, err := New(name, conn)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal(err.Error() + "conn " + conn)
 	}
 	defer db.Close()
 	t.Run(name, func(t *testing.T) {

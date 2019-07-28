@@ -41,8 +41,6 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 		models.Item{Key: keys.DB, Value: db},
 		models.Item{Key: keys.LoggerKey, Value: l},
 		models.Item{Key: keys.JwtKey, Value: jwt},
-		models.Item{Key: keys.Host, Value: cfg.Host},
-		models.Item{Key: keys.ImageHost, Value: cfg.ImageHost},
 	}
 	warden, err := access.New(db.DB(), nil)
 	if err != nil {

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -9,25 +10,39 @@ import (
 	"github.com/gernest/hiro/query"
 	"github.com/gernest/hiro/server"
 	"github.com/gernest/hiro/templates"
-	"github.com/gernest/hiro/util"
 	"github.com/urfave/cli"
 )
 
 // ServeCMD command for starting webserver.
 func ServeCMD(version, commit, buildDate string) cli.Command {
-	fl := []cli.Flag{
-		util.ConnFlag(),
-		util.DriverFlag(),
-		util.SecretFlag(),
-		util.HostFlag(),
-		util.ImageHostFlag(),
-	}
-	fl = append(fl, util.MinioFlags()...)
-	fl = append(fl, util.NSQFlags()...)
 	return cli.Command{
-		Name:   "serve",
-		Usage:  "starts the bq server",
-		Flags:  fl,
+		Name:  "serve",
+		Usage: "starts the hiro server",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:   "db-conn",
+				Usage:  "connection string to postgres database",
+				EnvVar: "HIRO_DB_CONN",
+			},
+			cli.StringFlag{
+				Name:   "driver",
+				Usage:  "database driver to use",
+				EnvVar: "HIRO_DB_DRIVER",
+				Value:  "postgres",
+			},
+			cli.StringFlag{
+				Name:   "secret",
+				Usage:  "hmac jwt secret",
+				EnvVar: "HIRO_JWT_SECRET",
+				Value:  "secret",
+			},
+			cli.IntFlag{
+				Name:   "port",
+				Usage:  "port to bind the server",
+				EnvVar: "HIRO_PORT",
+				Value:  8080,
+			},
+		},
 		Action: Serve(version, commit, buildDate),
 	}
 }
@@ -57,7 +72,7 @@ func Serve(version, commit, buildDate string) func(*cli.Context) error {
 			"DocsWebsite": "https://docs.bq.co.tz",
 			"Repository":  "https://github.com/gernest/bq",
 			"Twitter":     "@gernesti",
-			"Host":        cfg.Host,
+			"Host":        fmt.Sprintf(":%d", cfg.Port),
 			"Commit":      commit,
 			"BuildDate":   buildDate,
 		})

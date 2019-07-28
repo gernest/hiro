@@ -11,11 +11,11 @@ import (
 	"github.com/gernest/hiro/models"
 	"github.com/jmoiron/sqlx"
 	manager "github.com/ory/ladon/manager/sql"
+
 	//postgres
 	_ "github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 )
-
 
 // SQL implements Query interface.
 type SQL struct {

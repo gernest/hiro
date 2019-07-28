@@ -16,25 +16,10 @@ var ErrNotSet = errors.New("configuration file not set")
 
 // Config configuration settings.
 type Config struct {
-	DBDriver  string `yaml:"driver,omitempty"`
-	DBConn    string `yaml:"db_conn,omitempty"`
-	Port      int    `yaml:"port,omitempty"`
-	Secret    string `yaml:"secret,omitempty"`
-	Host      string `yaml:"host,omitempty"`
-	ImageHost string `yaml:"image_host,omitempty"`
-}
-
-// Minio minio client settings.
-type Minio struct {
-	Endpoint     string `yaml:"endpoint"`
-	AccessKey    string `yaml:"access_key"`
-	AccessSecret string `yaml:"access_secret"`
-}
-
-// NSQ nsq client options.
-type NSQ struct {
-	LookupD string `yaml:"lookupd"`
-	NSQD    string `yaml:"nsqd"`
+	DBDriver string `yaml:"driver,omitempty"`
+	DBConn   string `yaml:"db_conn,omitempty"`
+	Port     int    `yaml:"port,omitempty"`
+	Secret   string `yaml:"secret,omitempty"`
 }
 
 func load(path string) (*Config, error) {
@@ -53,9 +38,6 @@ func load(path string) (*Config, error) {
 // FromCtx returns configuration with setting from cli context.
 func FromCtx(ctx *cli.Context) (*Config, error) {
 	cfg := ctx.String("config")
-	if cfg != "" {
-		return load(cfg)
-	}
 	if cfg != "" {
 		return load(cfg)
 	}
@@ -78,12 +60,10 @@ func FromCtx(ctx *cli.Context) (*Config, error) {
 
 func fromCli(ctx *cli.Context) *Config {
 	cfg := &Config{
-		DBDriver:  ctx.String("driver"),
-		DBConn:    ctx.String("db-conn"),
-		Port:      ctx.Int("port"),
-		Secret:    ctx.String("secret"),
-		Host:      ctx.String("host"),
-		ImageHost: ctx.String("image-host"),
+		DBDriver: ctx.String("driver"),
+		DBConn:   ctx.String("db-conn"),
+		Port:     ctx.Int("port"),
+		Secret:   ctx.String("secret"),
 	}
 	return cfg
 }
@@ -118,11 +98,5 @@ func (c *Config) Update(n *Config) {
 	}
 	if n.Secret != "" {
 		c.Secret = n.Secret
-	}
-	if n.Host != "" {
-		c.Host = n.Host
-	}
-	if n.ImageHost != "" {
-		c.ImageHost = n.ImageHost
 	}
 }

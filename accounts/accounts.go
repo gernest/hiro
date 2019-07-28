@@ -38,7 +38,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, c)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("account.create can't marshal json", zap.Error(err))
+		log.Error("account.create can't unmarshal json", zap.Error(err))
 		return
 	}
 	v := c.Validate()
@@ -139,7 +139,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, c)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("account.Login can't marshal json", zap.Error(err))
+		log.Error("account.Login can't umarshal json", zap.Error(err))
 		return
 	}
 	if c.Name == "" {

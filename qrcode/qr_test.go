@@ -14,10 +14,11 @@ import (
 )
 
 func TestQR2(t *testing.T) {
-	ctx, err := testutil.New("qrcode", "http://localhost:8000", "someSecret")
+	ctx, err := testutil.New("qrcode", "someSecret")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer ctx.Close()
 	req := ctx.Req
 	t.Run("create", func(ts *testing.T) {
 		ts.Run("bad body", func(ts *testing.T) {

@@ -51,11 +51,6 @@ const (
 
 	// Home is the bq home directory.
 	Home = "BQ_HOME"
-
-	// Host is the dns resolvable url to the server.
-	Host = "bqHost"
-
-	ImageHost = "bqImageHost"
 )
 
 //website related keys
@@ -63,8 +58,6 @@ const (
 	WebsiteTitle       = "high performance qrcode service"
 	WebsiteDescription = "create, scan, manage and integrate qrcode into your business workflow"
 	WebsiteURL         = "https://bq.co.tz"
-	Minio              = "minio"
-	NSQ                = "nsq"
 
 	// Warden this is the key used to store an instance of *ladon.Ladon in the
 	// request context which is used to manage access of resources.

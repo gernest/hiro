@@ -7,14 +7,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
-	"github.com/gernest/hiro/query"
 	"github.com/gernest/hiro/resource"
+	"github.com/gernest/hiro/testutil"
 	"github.com/gernest/hiro/util"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
@@ -241,7 +240,6 @@ func TestValidation(t *testing.T) {
 
 const name = "gernestaccounts"
 const secret = "someSecret"
-const host = "http://localhost:8000"
 
 func request(items ...models.Item) func(string, string, io.Reader) *http.Request {
 	return func(method, target string, body io.Reader) *http.Request {
@@ -255,20 +253,17 @@ func request(items ...models.Item) func(string, string, io.Reader) *http.Request
 }
 
 func TestAccounts(t *testing.T) {
-	conn := os.Getenv("BQ_DB_CONN")
-	var err error
-	db, err := query.New("postgres", conn)
+	db, err := testutil.NewDB()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 	l, _ := zap.NewProduction()
 	jwt := &models.JWT{Secret: []byte(secret)}
 	req := request(
 		models.Item{Key: keys.DB, Value: db},
 		models.Item{Key: keys.LoggerKey, Value: l},
 		models.Item{Key: keys.JwtKey, Value: jwt},
-		models.Item{Key: keys.Host, Value: host},
-		models.Item{Key: keys.Minio, Value: nil},
 	)
 	t.Run("register", func(ts *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
