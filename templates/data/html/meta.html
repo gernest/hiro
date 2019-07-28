@@ -1,0 +1,2 @@
+{{$meta:= .meta}}{{range sortedKeys $meta}}
+<meta name="{{.}}" content="{{index $meta . }}" /> {{end}}
