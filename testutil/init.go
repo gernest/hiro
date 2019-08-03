@@ -42,7 +42,6 @@ func New(name, secret string) (*Context, error) {
 	uid := uuid.NewV4()
 	a := &models.Account{
 		UUID:     uid,
-		Name:     name,
 		Email:    fmt.Sprintf("%s@%s.co", name, name),
 		Password: "pass",
 	}
@@ -93,9 +92,9 @@ func NewDB() (*query.SQL, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if err := s.Up(context.Background()); err != nil {
-	// 	return nil, err
-	// }
+	if err := s.Up(context.Background()); err != nil {
+		return nil, err
+	}
 	return s, nil
 }
 

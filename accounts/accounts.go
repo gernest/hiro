@@ -1,7 +1,6 @@
 package accounts
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -29,13 +28,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		zap.String("url", r.URL.String()),
 	)
 	c := &models.CreateAccount{}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("account.create can't read body", zap.Error(err))
-		return
-	}
-	err = json.Unmarshal(b, c)
+	err := json.NewDecoder(r.Body).Decode(&c)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("account.create can't unmarshal json", zap.Error(err))
@@ -48,7 +41,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 	a := &models.Account{
 		UUID:  uuid.NewV4(),
-		Name:  c.Name,
 		Email: c.Email,
 	}
 
@@ -177,20 +169,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	a, err := ctx.DB.GetAccount(r.Context(), c.Name)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			util.WriteJSON(w, &models.APIError{
-				Message: keys.FailedValidation,
-				Errors: []models.Message{
-					{
-						Resource: "Login",
-						Field:    "name",
-						Desc:     keys.WrongCredentials,
-					},
+		util.WriteJSON(w, &models.APIError{
+			Message: keys.FailedValidation,
+			Errors: []models.Message{
+				{
+					Resource: "Login",
+					Field:    "name",
+					Desc:     keys.WrongCredentials,
 				},
-			}, http.StatusNotFound)
-			return
-		}
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusInternalServerError)
+			},
+		}, http.StatusNotFound)
 		log.Error("account.Login can't find a user", zap.Error(err))
 		return
 	}

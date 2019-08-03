@@ -50,7 +50,6 @@ func TestJWT(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	g := &models.CreateAccount{
-		Name:            "gee",
 		Email:           "gernest@examples.com",
 		Password:        "pass",
 		ConfirmPassword: "pass",
@@ -66,7 +65,6 @@ func TestValidation(t *testing.T) {
 		},
 		{
 			form: &models.CreateAccount{
-				Name:            g.Name,
 				Password:        g.Password,
 				ConfirmPassword: g.ConfirmPassword,
 			},
@@ -84,7 +82,6 @@ func TestValidation(t *testing.T) {
 		},
 		{
 			form: &models.CreateAccount{
-				Name:            g.Name,
 				Email:           g.Email,
 				ConfirmPassword: g.ConfirmPassword,
 			},
@@ -102,7 +99,6 @@ func TestValidation(t *testing.T) {
 		},
 		{
 			form: &models.CreateAccount{
-				Name:     g.Name,
 				Email:    g.Email,
 				Password: g.Password,
 			},
@@ -123,11 +119,6 @@ func TestValidation(t *testing.T) {
 			err: &models.APIError{
 				Message: keys.FailedValidation,
 				Errors: []models.Message{
-					{
-						Resource: resource.Account,
-						Field:    "name",
-						Desc:     keys.MissingUsername,
-					},
 					{
 						Resource: resource.Account,
 						Field:    "email",
@@ -151,11 +142,6 @@ func TestValidation(t *testing.T) {
 				Errors: []models.Message{
 					{
 						Resource: resource.Account,
-						Field:    "name",
-						Desc:     keys.MissingUsername,
-					},
-					{
-						Resource: resource.Account,
 						Field:    "email",
 						Desc:     keys.InvalidEmail,
 					},
@@ -169,17 +155,10 @@ func TestValidation(t *testing.T) {
 			desc: "missing all fields with invalid email",
 		},
 		{
-			form: &models.CreateAccount{
-				Name: "some.name",
-			},
+			form: &models.CreateAccount{},
 			err: &models.APIError{
 				Message: keys.FailedValidation,
 				Errors: []models.Message{
-					{
-						Resource: resource.Account,
-						Field:    "name",
-						Desc:     keys.InvalidUsername,
-					},
 					{
 						Resource: resource.Account,
 						Field:    "email",
@@ -195,17 +174,10 @@ func TestValidation(t *testing.T) {
 			desc: "missing all fields with invalid name",
 		},
 		{
-			form: &models.CreateAccount{
-				Name: "dashboard",
-			},
+			form: &models.CreateAccount{},
 			err: &models.APIError{
 				Message: keys.FailedValidation,
 				Errors: []models.Message{
-					{
-						Resource: resource.Account,
-						Field:    "name",
-						Desc:     keys.UsernameAlreadyExists,
-					},
 					{
 						Resource: resource.Account,
 						Field:    "email",
@@ -265,6 +237,7 @@ func TestAccounts(t *testing.T) {
 		models.Item{Key: keys.LoggerKey, Value: l},
 		models.Item{Key: keys.JwtKey, Value: jwt},
 	)
+	email := name + "@bqtest.com"
 	t.Run("register", func(ts *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
 			r := req("POST", "/register", nil)
@@ -276,8 +249,7 @@ func TestAccounts(t *testing.T) {
 		})
 
 		r := req("POST", "/register", reqData(&models.CreateAccount{
-			Name:     name,
-			Email:    name + "@bqtest.com",
+			Email:    email,
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()
@@ -295,15 +267,14 @@ func TestAccounts(t *testing.T) {
 		}
 
 		r = req("POST", "/register", reqData(&models.CreateAccount{
-			Name:            name,
-			Email:           name + "@bqtest.com",
+			Email:           email,
 			Password:        "pass",
 			ConfirmPassword: "pass",
 		}))
 		w = httptest.NewRecorder()
 		Create(w, r)
 		if w.Code != http.StatusOK {
-			ts.Fatalf("expected %d got %d \n%s", http.StatusOK, w.Code, w.Body.String())
+			ts.Fatalf("expected %v %d got %d \n%s", r.Body == nil, http.StatusOK, w.Code, w.Body.String())
 		}
 		s := &models.Status{}
 		err = json.Unmarshal(w.Body.Bytes(), s)
@@ -376,7 +347,7 @@ func TestAccounts(t *testing.T) {
 			}
 		})
 		r := req("POST", "/login", reqData(&models.Login{
-			Name:     name,
+			Name:     email,
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()

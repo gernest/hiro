@@ -144,7 +144,6 @@ type Item struct {
 // Account is a bq user account
 type Account struct {
 	UUID      uuid.UUID
-	Name      string
 	Email     string
 	Password  string
 	CreatedAt time.Time
@@ -164,7 +163,6 @@ type Login struct {
 
 // CreateAccount form for creating new account.
 type CreateAccount struct {
-	Name            string `schema:"username" json:"name"`
 	Email           string `schema:"email" json:"email"`
 	Password        string `schema:"password" json:"password"`
 	ConfirmPassword string `schema:"confirm_password" json:"confirm_password"`
@@ -395,34 +393,13 @@ func (c *ContextItem) GetValue() string {
 //	confirm_password
 //		- must match the given  password.
 func (c *CreateAccount) Validate() *APIError {
-	c.Name = strings.TrimSpace(c.Name)
 	c.Email = strings.TrimSpace(c.Email)
 	c.Password = strings.TrimSpace(c.Password)
 	c.ConfirmPassword = strings.TrimSpace(c.ConfirmPassword)
 	a := &APIError{
 		Message: keys.FailedValidation,
 	}
-	if c.Name == "" {
-		a.Add(Message{
-			Resource: resource.Account,
-			Field:    "name",
-			Desc:     keys.MissingUsername,
-		})
-	}
-	if IsReserved(c.Name) {
-		a.Add(Message{
-			Resource: resource.Account,
-			Field:    "name",
-			Desc:     keys.UserExists,
-		})
-	}
-	if !valid.IsAlphanumeric(c.Name) {
-		a.Add(Message{
-			Resource: resource.Account,
-			Field:    "name",
-			Desc:     keys.InvalidUsername,
-		})
-	}
+
 	if c.Email == "" {
 		a.Add(Message{
 			Resource: resource.Account,

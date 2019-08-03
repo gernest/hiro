@@ -12,61 +12,30 @@ import (
 )
 
 func TestQuery(t *testing.T) {
-	drivers := []struct {
-		name, conn string
-	}{
-		{
-			name: "postgres",
-			conn: os.Getenv("HIRO_DB_CONN"),
-		},
-	}
-	for _, c := range drivers {
-		sandbox(c.name, c.conn, t)
-	}
-}
-
-func sandbox(name, conn string, t *testing.T) {
-	db, err := New(name, conn)
+	db, err := New("postgres", os.Getenv("HIRO_DB_CONN"))
 	if err != nil {
-		t.Fatal(err.Error() + "conn " + conn)
+		t.Fatal(err)
 	}
 	defer db.Close()
-	t.Run(name, func(t *testing.T) {
-		t.Run("migrations", func(ts *testing.T) {
-			// migrationTest(ts, db)
+	db.Up(context.Background())
+	t.Run("accounts", func(ts *testing.T) {
+		id := accountsTest(ts, db)
+		ts.Run("tokens", func(tst *testing.T) {
+			tokenTest(tst, db, id)
 		})
-		t.Run("accounts", func(ts *testing.T) {
-			id := accountsTest(ts, db)
-			ts.Run("tokens", func(tst *testing.T) {
-				tokenTest(tst, db, id)
-			})
-			ts.Run("qrcode", func(tst *testing.T) {
-				qrTest(tst, db, id)
-			})
-			t.Run("collections", func(ts *testing.T) {
-				collectionTest(ts, db, id)
-			})
+		ts.Run("qrcode", func(tst *testing.T) {
+			qrTest(tst, db, id)
+		})
+		t.Run("collections", func(ts *testing.T) {
+			collectionTest(ts, db, id)
 		})
 	})
-}
-
-func migrationTest(t *testing.T, db *SQL) {
-	ctx := context.Background()
-	err := db.Down(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = db.Up(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func accountsTest(t *testing.T, db *SQL) uuid.UUID {
 	now := time.Now()
 	a := &models.Account{
 		UUID:      uuid.NewV4(),
-		Name:      "gernest",
 		Email:     "mail@example.com",
 		Password:  "pass",
 		CreatedAt: now,
@@ -79,7 +48,7 @@ func accountsTest(t *testing.T, db *SQL) uuid.UUID {
 		t.Fatal(err)
 	}
 
-	_, err = db.GetAccount(ctx, a.Name)
+	_, err = db.GetAccount(ctx, a.Email)
 	if err != nil {
 		t.Fatal(err)
 	}

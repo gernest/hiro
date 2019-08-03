@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -201,44 +202,34 @@ func (s *SQL) CreateToken(ctx context.Context, tk *models.Token) error {
 func (s *SQL) CreateAccount(ctx context.Context, a *models.Account) error {
 	q := `
 
-	INSERT INTO accounts (uuid,name,email, password, created_at,updated_at)
+	INSERT INTO accounts (uuid,email, password, created_at,updated_at)
 	VALUES ($1,
 			$2,
 			$3,
 			$4,
-			$5,
-			$6)`
-	_, err := s.db.ExecContext(ctx, q, a.UUID, a.Name,
+			$5)`
+	_, err := s.db.ExecContext(ctx, q, a.UUID,
 		a.Email, a.Password, a.CreatedAt, a.UpdatedAt)
 	return err
 }
 
-// GetAccount finds account by name/email address.
-func (s *SQL) GetAccount(ctx context.Context, name string) (*models.Account, error) {
+// GetAccount finds account by email address.
+func (s *SQL) GetAccount(ctx context.Context, email string) (*models.Account, error) {
 	q := `
-SELECT uuid,
-       name,
-       email,
-	   password,
-       created_at,
-       updated_at
-FROM accounts
-WHERE name=$1`
-	if valid.IsEmail(name) {
-		q = `
-SELECT uuid,
-       name,
-       email,
-	   password,
-       created_at,
-       updated_at
-FROM accounts
-WHERE email=$1
-		`
+	SELECT uuid,
+		   email,
+		   password,
+		   created_at,
+		   updated_at
+	FROM accounts
+	WHERE email=$1
+			`
+	if !valid.IsEmail(email) {
+		return nil, errors.New("invalid email address")
 	}
 	a := &models.Account{}
-	err := s.db.QueryRowContext(ctx, q, name).Scan(
-		&a.UUID, &a.Name, &a.Email, &a.Password,
+	err := s.db.QueryRowContext(ctx, q, email).Scan(
+		&a.UUID, &a.Email, &a.Password,
 		&a.CreatedAt, &a.UpdatedAt,
 	)
 	if err != nil {
@@ -285,7 +276,6 @@ WHERE uuid=$1;
 func (s *SQL) GetAccountByUUID(ctx context.Context, id uuid.UUID) (*models.Account, error) {
 	q := `
 SELECT uuid,
-       name,
        email,
        password,
        created_at,
@@ -294,7 +284,7 @@ FROM accounts
 WHERE uuid=$1`
 	a := &models.Account{}
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
-		&a.UUID, &a.Name, &a.Email, &a.Password, &a.CreatedAt, &a.UpdatedAt,
+		&a.UUID, &a.Email, &a.Password, &a.CreatedAt, &a.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -385,7 +375,6 @@ CREATE EXTENSION IF NOT EXISTS citext;
 CREATE TABLE  IF NOT EXISTS accounts(
 	id serial,
 	uuid uuid UNIQUE,
-	name varchar(255) UNIQUE NOT NULL,
 	email citext UNIQUE,
 	password text,
 	created_at timestamptz not null default(now() at time zone 'utc'),
