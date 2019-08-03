@@ -1,3 +1,3 @@
-package templates
+package tests
 
 //TODO: Add tests

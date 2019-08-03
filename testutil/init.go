@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -30,22 +29,21 @@ type Context struct {
 	items   []models.Item
 }
 
-func New(name, secret string) (*Context, error) {
-	conn := os.Getenv("HIRO_DB_CONN")
-	db, err := query.New("postgres", conn)
-	if err != nil {
-		return nil, err
-	}
+const TestEmail = "hiro@examples.com"
+const TestSecret = "somesecret"
+
+func New(db *query.SQL) (*Context, error) {
+
 	l, _ := zap.NewProduction()
-	jwt := &models.JWT{Secret: []byte(secret)}
+	jwt := &models.JWT{Secret: []byte(TestSecret)}
 
 	uid := uuid.NewV4()
 	a := &models.Account{
 		UUID:     uid,
-		Email:    fmt.Sprintf("%s@%s.co", name, name),
+		Email:    TestEmail,
 		Password: "pass",
 	}
-	err = db.CreateAccount(context.Background(), a)
+	err := db.CreateAccount(context.Background(), a)
 	if err != nil {
 		return nil, err
 	}

@@ -1,28 +1,29 @@
-package meta
+package tests
 
 import (
 	"bytes"
 	"io/ioutil"
 	"testing"
 
+	"github.com/gernest/hiro/meta"
 	"github.com/gernest/hiro/templates"
 )
 
 func TestTwitter(t *testing.T) {
-	tw := &Twitter{
+	tw := &meta.Twitter{
 		Card:        "summary",
 		Site:        "@bqservice",
 		Creator:     "@gernest",
 		Title:       "high performance qrcode service",
 		Description: " Create, scan, manage and integrate qrcode into your business workflow",
 	}
-	og := &OpenGraph{
+	og := &meta.OpenGraph{
 		Title:       tw.Title,
 		Description: tw.Description,
 		Type:        "website",
 	}
 	var buf bytes.Buffer
-	mm := &Meta{OpenGraph: og, Twitter: tw}
+	mm := &meta.Meta{OpenGraph: og, Twitter: tw}
 	m, err := mm.Map()
 	if err != nil {
 		t.Fatal(err)

@@ -1,8 +1,9 @@
-package ago
+package tests
 
 import (
 	"testing"
 	"time"
+	"github.com/gernest/hiro/ago"
 )
 
 func TestAgo(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAgo(t *testing.T) {
 		},
 	}
 	for _, v := range sample {
-		got := Ago(v.duration)
+		got := ago.Ago(v.duration)
 		if got != v.text {
 			t.Errorf("expected %s got %s", v.text, got)
 		}

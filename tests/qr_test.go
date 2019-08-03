@@ -1,4 +1,4 @@
-package qrcode
+package tests
 
 import (
 	"encoding/json"
@@ -9,22 +9,18 @@ import (
 	"github.com/gernest/alien"
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
+	"github.com/gernest/hiro/qrcode"
 	"github.com/gernest/hiro/testutil"
 	uuid "github.com/satori/go.uuid"
 )
 
-func TestQR2(t *testing.T) {
-	ctx, err := testutil.New("qrcode", "someSecret")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer ctx.Close()
+func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 	req := ctx.Req
 	t.Run("create", func(ts *testing.T) {
 		ts.Run("bad body", func(ts *testing.T) {
 			r := req("POST", "/v1/qr/", nil)
 			w := httptest.NewRecorder()
-			Create(w, r)
+			qrcode.Create(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -38,7 +34,7 @@ func TestQR2(t *testing.T) {
 			orig := ctx.Claims.Id
 			ctx.Claims.Id = ""
 			w := httptest.NewRecorder()
-			Create(w, r)
+			qrcode.Create(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -54,7 +50,7 @@ func TestQR2(t *testing.T) {
 			orig := ctx.Claims.Id
 			ctx.Claims.Id = uuid.NewV4().String()
 			w := httptest.NewRecorder()
-			Create(w, r)
+			qrcode.Create(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -68,7 +64,7 @@ func TestQR2(t *testing.T) {
 		r := req("POST", "/v1/qr/", testutil.ReqData(&models.QRReq{}))
 
 		w := httptest.NewRecorder()
-		Create(w, r)
+		qrcode.Create(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -85,7 +81,7 @@ func TestQR2(t *testing.T) {
 		}))
 
 		w := httptest.NewRecorder()
-		Create(w, r)
+		qrcode.Create(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -105,7 +101,7 @@ func TestQR2(t *testing.T) {
 			}
 			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			View(w, r)
+			qrcode.View(w, r)
 			if w.Code != http.StatusOK {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -128,7 +124,7 @@ func TestQR2(t *testing.T) {
 			}
 			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			View(w, r)
+			qrcode.View(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -143,7 +139,7 @@ func TestQR2(t *testing.T) {
 			}
 			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			View(w, r)
+			qrcode.View(w, r)
 			if w.Code != http.StatusNotFound {
 				ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 			}
@@ -163,7 +159,7 @@ func TestQR2(t *testing.T) {
 				}
 				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				Update(w, r)
+				qrcode.Update(w, r)
 				if w.Code != http.StatusBadRequest {
 					ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 				}
@@ -177,7 +173,7 @@ func TestQR2(t *testing.T) {
 				}
 				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				Update(w, r)
+				qrcode.Update(w, r)
 				if w.Code != http.StatusBadRequest {
 					ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 				}
@@ -191,7 +187,7 @@ func TestQR2(t *testing.T) {
 				}
 				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				Update(w, r)
+				qrcode.Update(w, r)
 				if w.Code != http.StatusNotFound {
 					ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 				}
@@ -206,7 +202,7 @@ func TestQR2(t *testing.T) {
 				}
 				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				Update(w, r)
+				qrcode.Update(w, r)
 				if w.Code != http.StatusOK {
 					ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 				}
@@ -225,7 +221,7 @@ func TestQR2(t *testing.T) {
 		r := req("POST", "/v1/qr/", testutil.ReqData(&models.QRReq{}))
 
 		w := httptest.NewRecorder()
-		Create(w, r)
+		qrcode.Create(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -244,7 +240,7 @@ func TestQR2(t *testing.T) {
 		}
 		r.Header.Add("_alien", param)
 		w = httptest.NewRecorder()
-		Delete(w, r)
+		qrcode.Delete(w, r)
 		if w.Code != http.StatusBadRequest {
 			ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 		}
@@ -257,7 +253,7 @@ func TestQR2(t *testing.T) {
 		}
 		r.Header.Add("_alien", param)
 		w = httptest.NewRecorder()
-		Delete(w, r)
+		qrcode.Delete(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -268,13 +264,13 @@ func TestQR2(t *testing.T) {
 		r := req("GET", link, nil)
 
 		w := httptest.NewRecorder()
-		List(w, r)
+		qrcode.List(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
 
 		o := models.QRList{}
-		err = json.Unmarshal(w.Body.Bytes(), &o)
+		err := json.Unmarshal(w.Body.Bytes(), &o)
 		if err != nil {
 			ts.Fatal(err)
 		}

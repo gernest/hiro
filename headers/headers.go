@@ -30,7 +30,7 @@ const (
 	// last modified.
 	LastModified = "Last-Modified"
 
-	lastModifiedTimeFormat = "Mon, _2 Jan 2006 15:04:05 MST"
+	LastModifiedTimeFormat = "Mon, _2 Jan 2006 15:04:05 MST"
 
 	// Authorization header
 	Authorization = "Authorization"
@@ -49,7 +49,7 @@ func JPEG() string {
 // LastModifiedTime returns http header with Last-Modified header set.
 func LastModifiedTime(t time.Time) http.Header {
 	h := make(http.Header)
-	h.Set(LastModified, t.Format(lastModifiedTimeFormat))
+	h.Set(LastModified, t.Format(LastModifiedTimeFormat))
 	return h
 }
 

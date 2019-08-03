@@ -58,7 +58,6 @@ tasks:
       - go  run ./scripts/migrate/main..go --db-conn={{.HIRO_DB_CONN}}   down
 
   test:
-    deps: [migrate_down]
     silent: true
     cmds: 
       - HIRO_DB_CONN={{.HIRO_DB_CONN}} go test ./...

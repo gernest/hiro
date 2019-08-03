@@ -1,4 +1,4 @@
-package collections
+package tests
 
 import (
 	"context"
@@ -8,17 +8,13 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/gernest/hiro/collections"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/testutil"
 	uuid "github.com/satori/go.uuid"
 )
 
-func TestCollections(t *testing.T) {
-	ctx, err := testutil.New("collections", "someSecret")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer ctx.Close()
+func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 	t.Run("create", func(ts *testing.T) {
 		r := ctx.Req("POST", "/v1/collections", testutil.ReqData(
 			&models.CollectionReq{
@@ -27,12 +23,12 @@ func TestCollections(t *testing.T) {
 			},
 		))
 		w := httptest.NewRecorder()
-		Create(w, r)
+		collections.Create(w, r)
 		if w.Code != http.StatusOK {
 			t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 		}
 		c := &models.Collection{}
-		err = json.Unmarshal(w.Body.Bytes(), c)
+		err := json.Unmarshal(w.Body.Bytes(), c)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -42,7 +38,7 @@ func TestCollections(t *testing.T) {
 			query.Set("uuid", c.ID())
 			r := ctx.Req("GET", "/v1/collections/view?"+query.Encode(), nil)
 			w := httptest.NewRecorder()
-			View(w, r)
+			collections.View(w, r)
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -55,7 +51,7 @@ func TestCollections(t *testing.T) {
 		ts.Run("list", func(ts *testing.T) {
 			r := ctx.Req("GET", "/v1/collections", nil)
 			w := httptest.NewRecorder()
-			List(w, r)
+			collections.List(w, r)
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -81,7 +77,7 @@ func TestCollections(t *testing.T) {
 				},
 			))
 			w := httptest.NewRecorder()
-			Assign(w, r)
+			collections.Assign(w, r)
 			if w.Code != http.StatusOK {
 				ts.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -96,7 +92,7 @@ func TestCollections(t *testing.T) {
 			query.Set("uuid", c.ID())
 			r := ctx.Req("POST", "/v1/collections/delete?"+query.Encode(), nil)
 			w := httptest.NewRecorder()
-			Delete(w, r)
+			collections.Delete(w, r)
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}

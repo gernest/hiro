@@ -1,23 +1,19 @@
-package query
+package tests
 
 import (
 	"context"
 	"database/sql"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/gernest/hiro/models"
+	"github.com/gernest/hiro/query"
+	"github.com/gernest/hiro/testutil"
 	uuid "github.com/satori/go.uuid"
 )
 
-func TestQuery(t *testing.T) {
-	db, err := New("postgres", os.Getenv("HIRO_DB_CONN"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	db.Up(context.Background())
+func RunQueryTest(t *testing.T, ctx *testutil.Context) {
+	db := ctx.DB
 	t.Run("accounts", func(ts *testing.T) {
 		id := accountsTest(ts, db)
 		ts.Run("tokens", func(tst *testing.T) {
@@ -32,7 +28,7 @@ func TestQuery(t *testing.T) {
 	})
 }
 
-func accountsTest(t *testing.T, db *SQL) uuid.UUID {
+func accountsTest(t *testing.T, db *query.SQL) uuid.UUID {
 	now := time.Now()
 	a := &models.Account{
 		UUID:      uuid.NewV4(),
@@ -60,7 +56,7 @@ func accountsTest(t *testing.T, db *SQL) uuid.UUID {
 	return a.UUID
 }
 
-func tokenTest(t *testing.T, db *SQL, id uuid.UUID) {
+func tokenTest(t *testing.T, db *query.SQL, id uuid.UUID) {
 	tk := models.DefaultLoginToken(id)
 	ctx := context.Background()
 	err := db.CreateToken(ctx, tk)
@@ -73,7 +69,7 @@ func tokenTest(t *testing.T, db *SQL, id uuid.UUID) {
 	}
 }
 
-func qrTest(t *testing.T, db *SQL, id uuid.UUID) {
+func qrTest(t *testing.T, db *query.SQL, id uuid.UUID) {
 	now := time.Now()
 	c := &models.QR{
 		UUID:      uuid.NewV4(),
@@ -147,7 +143,7 @@ func qrTest(t *testing.T, db *SQL, id uuid.UUID) {
 	}
 }
 
-func collectionTest(t *testing.T, db *SQL, usr uuid.UUID) {
+func collectionTest(t *testing.T, db *query.SQL, usr uuid.UUID) {
 	names := []string{"q", "b", "c"}
 	var list []*models.Collection
 	ctx := context.Background()
@@ -198,7 +194,7 @@ func collectionTest(t *testing.T, db *SQL, usr uuid.UUID) {
 }
 
 func TestUpdateGroup(t *testing.T) {
-	q, args, ok := updateGroups(uuid.UUID{}, "one", "two")
+	q, args, ok := query.UpdateGroups(uuid.UUID{}, "one", "two")
 	if !ok {
 		t.Fatal("expected to be true")
 	}

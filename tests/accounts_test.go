@@ -1,4 +1,4 @@
-package accounts
+package tests
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gernest/hiro/accounts"
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/resource"
@@ -224,12 +225,8 @@ func request(items ...models.Item) func(string, string, io.Reader) *http.Request
 	}
 }
 
-func TestAccounts(t *testing.T) {
-	db, err := testutil.NewDB()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
+func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
+	db := ctx.DB
 	l, _ := zap.NewProduction()
 	jwt := &models.JWT{Secret: []byte(secret)}
 	req := request(
@@ -237,23 +234,23 @@ func TestAccounts(t *testing.T) {
 		models.Item{Key: keys.LoggerKey, Value: l},
 		models.Item{Key: keys.JwtKey, Value: jwt},
 	)
-	email := name + "@bqtest.com"
+	email := "accounts@sample.email.com"
 	t.Run("register", func(ts *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
 			r := req("POST", "/register", nil)
 			w := httptest.NewRecorder()
-			Create(w, r)
+			accounts.Create(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
 		})
 
 		r := req("POST", "/register", reqData(&models.CreateAccount{
-			Email:    email,
+			Email:    testutil.TestEmail,
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()
-		Create(w, r)
+		accounts.Create(w, r)
 		if w.Code != http.StatusUnprocessableEntity {
 			ts.Fatalf("expected %d got %d", http.StatusUnprocessableEntity, w.Code)
 		}
@@ -272,7 +269,7 @@ func TestAccounts(t *testing.T) {
 			ConfirmPassword: "pass",
 		}))
 		w = httptest.NewRecorder()
-		Create(w, r)
+		accounts.Create(w, r)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %v %d got %d \n%s", r.Body == nil, http.StatusOK, w.Code, w.Body.String())
 		}
@@ -290,7 +287,7 @@ func TestAccounts(t *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
 			r := req("POST", "/login", nil)
 			w := httptest.NewRecorder()
-			Login(w, r)
+			accounts.Login(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -304,7 +301,7 @@ func TestAccounts(t *testing.T) {
 				Password: "pass",
 			}))
 			w := httptest.NewRecorder()
-			Login(w, r)
+			accounts.Login(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -318,7 +315,7 @@ func TestAccounts(t *testing.T) {
 				Name: name,
 			}))
 			w := httptest.NewRecorder()
-			Login(w, r)
+			accounts.Login(w, r)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -333,7 +330,7 @@ func TestAccounts(t *testing.T) {
 				Password: "pass",
 			}))
 			w := httptest.NewRecorder()
-			Login(w, r)
+			accounts.Login(w, r)
 			if w.Code != http.StatusNotFound {
 				ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 			}
@@ -351,7 +348,7 @@ func TestAccounts(t *testing.T) {
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()
-		Login(w, r)
+		accounts.Login(w, r)
 
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
@@ -370,13 +367,4 @@ func TestAccounts(t *testing.T) {
 func reqData(v interface{}) io.Reader {
 	b, _ := json.Marshal(v)
 	return bytes.NewReader(b)
-}
-
-func apiError(t *testing.T, w *httptest.ResponseRecorder) *models.APIError {
-	m := &models.APIError{}
-	err := json.Unmarshal(w.Body.Bytes(), m)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return m
 }

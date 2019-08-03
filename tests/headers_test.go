@@ -1,4 +1,4 @@
-package headers
+package tests
 
 import (
 	"bytes"
@@ -7,17 +7,19 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gernest/hiro/headers"
 )
 
 func TestHeaders(t *testing.T) {
 	e := "image/png"
-	g := PNG()
+	g := headers.PNG()
 	if g != e {
 		t.Errorf("expected %s got %s", e, g)
 	}
 
 	e = "image/jpeg"
-	g = JPEG()
+	g = headers.JPEG()
 	if g != e {
 		t.Errorf("expected %s got %s", e, g)
 	}
@@ -25,11 +27,11 @@ func TestHeaders(t *testing.T) {
 
 func TestLastModified(t *testing.T) {
 	sample := "Wed, 21 Oct 2015 07:28:00 GMT"
-	ts, err := time.Parse(lastModifiedTimeFormat, sample)
+	ts, err := time.Parse(headers.LastModifiedTimeFormat, sample)
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := LastModifiedTime(ts)
+	h := headers.LastModifiedTime(ts)
 	var buf bytes.Buffer
 	h.Write(&buf)
 	e := "Last-Modified: Wed, 21 Oct 2015 07:28:00 GMT"
@@ -42,14 +44,14 @@ func TestLastModified(t *testing.T) {
 
 func TestMerge(t *testing.T) {
 	h1 := make(http.Header)
-	h1.Add(ContentType, ApplicationJSON)
+	h1.Add(headers.ContentType, headers.ApplicationJSON)
 	sample := "Wed, 21 Oct 2015 07:28:00 GMT"
-	ts, err := time.Parse(lastModifiedTimeFormat, sample)
+	ts, err := time.Parse(headers.LastModifiedTimeFormat, sample)
 	if err != nil {
 		t.Fatal(err)
 	}
-	h2 := LastModifiedTime(ts)
-	m := Merge(h1, h2)
+	h2 := headers.LastModifiedTime(ts)
+	m := headers.Merge(h1, h2)
 
 	buf := bytes.Buffer{}
 	err = m.Write(&buf)
@@ -69,22 +71,22 @@ func TestMerge(t *testing.T) {
 
 func TestIsJSONContent(t *testing.T) {
 	h := make(http.Header)
-	h.Add(ContentType, ApplicationJSON)
-	if !IsJSONContent(h) {
+	h.Add(headers.ContentType, headers.ApplicationJSON)
+	if !headers.IsJSONContent(h) {
 		t.Error("expected to be true")
 	}
 }
 func TestIsForm(t *testing.T) {
 	h := make(http.Header)
-	h.Add(ContentType, ApplicationForm)
-	if !IsForm(h) {
+	h.Add(headers.ContentType, headers.ApplicationForm)
+	if !headers.IsForm(h) {
 		t.Error("expected to be true")
 	}
 }
 func TestIsMultipartForm(t *testing.T) {
 	h := make(http.Header)
-	h.Add(ContentType, ApplicationMultipartForm)
-	if !IsMultipartForm(h) {
+	h.Add(headers.ContentType, headers.ApplicationMultipartForm)
+	if !headers.IsMultipartForm(h) {
 		t.Error("expected to be true")
 	}
 }

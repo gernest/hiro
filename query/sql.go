@@ -66,7 +66,7 @@ func (s *SQL) CreateQR(ctx context.Context, qr *models.QR, groups ...string) err
 		return err
 	}
 	if groups != nil {
-		if query, args, ok := updateGroups(qr.UUID, groups...); ok {
+		if query, args, ok := UpdateGroups(qr.UUID, groups...); ok {
 			_, err = s.db.ExecContext(ctx, query, args...)
 			return err
 		}
@@ -74,7 +74,7 @@ func (s *SQL) CreateQR(ctx context.Context, qr *models.QR, groups ...string) err
 	return nil
 }
 
-func updateGroups(code uuid.UUID, groups ...string) (string, []interface{}, bool) {
+func UpdateGroups(code uuid.UUID, groups ...string) (string, []interface{}, bool) {
 	if len(groups) > 0 {
 		q := "INSERT INTO qr_collections VALUES "
 		i := 2

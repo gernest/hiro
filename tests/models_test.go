@@ -1,8 +1,9 @@
-package models
+package tests
 
 import (
 	"testing"
 
+	"github.com/gernest/hiro/models"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -11,7 +12,7 @@ func TestQRCodeCacheRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := &QRCodeCacheRequest{
+	o := &models.QRCodeCacheRequest{
 		Owner:  id,
 		UUID:   id,
 		Width:  150,
@@ -23,7 +24,7 @@ func TestQRCodeCacheRequest(t *testing.T) {
 		t.Errorf("expected %s got %s", expect, key)
 	}
 
-	n := &QRCodeCacheRequest{}
+	n := &models.QRCodeCacheRequest{}
 	err = n.FromKey(key)
 	if err != nil {
 		t.Fatal(err)
