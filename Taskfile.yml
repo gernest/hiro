@@ -60,7 +60,7 @@ tasks:
   test:
     silent: true
     cmds: 
-      - HIRO_DB_CONN={{.HIRO_DB_CONN}} go test ./...
+      - HIRO_DB_CONN={{.HIRO_DB_CONN}} go test -v ./...
   serve:
     deps: [build]
     silent: true 
