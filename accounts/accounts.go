@@ -2,7 +2,6 @@ package accounts
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gernest/hiro/access"
@@ -122,16 +121,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		zap.String("url", r.URL.String()),
 	)
 	c := &models.Login{}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("account.Login can't read body", zap.Error(err))
-		return
-	}
-	err = json.Unmarshal(b, c)
+	err := json.NewDecoder(r.Body).Decode(c)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("account.Login can't umarshal json", zap.Error(err))
+		log.Error("account.Login can't unmarshal json", zap.Error(err))
 		return
 	}
 	if c.Name == "" {

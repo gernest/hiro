@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -77,16 +76,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("qr.create can't read body",
-			zap.Error(err),
-		)
-		return
-	}
 	m := &models.QRReq{}
-	err = json.Unmarshal(b, &m)
+	err = json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("qr.create fail to unmarshal request body",
@@ -365,15 +356,8 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	info := &models.QR{}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("qr.update can't read body",
-			zap.Error(err),
-		)
-		return
-	}
-	err = json.Unmarshal(b, info)
+
+	err = json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("qr.update fail to unmarshal request body",

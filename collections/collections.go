@@ -3,7 +3,6 @@ package collections
 import (
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -58,16 +57,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("collections.create can't read body",
-			zap.Error(err),
-		)
-		return
-	}
+
 	m := &models.CollectionReq{}
-	err = json.Unmarshal(b, m)
+	err = json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("collections.create fail to unmarshal request body",
@@ -242,16 +234,8 @@ func Assign(w http.ResponseWriter, r *http.Request) {
 		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
 		return
 	}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("collections.create can't read body",
-			zap.Error(err),
-		)
-		return
-	}
 	m := &models.CollectionAssignReq{}
-	err = json.Unmarshal(b, &m)
+	err := json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("collections.create fail to unmarshal request body",
@@ -279,16 +263,9 @@ func DeAssign(w http.ResponseWriter, r *http.Request) {
 		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
 		return
 	}
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadBody}, http.StatusBadRequest)
-		log.Error("collections.create can't read body",
-			zap.Error(err),
-		)
-		return
-	}
+
 	m := &models.CollectionAssignReq{}
-	err = json.Unmarshal(b, &m)
+	err := json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
 		log.Error("collections.create fail to unmarshal request body",
