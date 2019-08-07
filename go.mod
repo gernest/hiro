@@ -41,6 +41,7 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
+	gocv.io/x/gocv v0.17.0
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 	google.golang.org/appengine v1.1.0 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
