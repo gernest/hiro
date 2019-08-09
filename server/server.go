@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
@@ -29,7 +30,8 @@ import (
 // url to the current server a.k.a host.
 func ServeAPI(ctx context.Context, db *query.SQL, cfg *config.Config) error {
 	h := Handler(ctx, db, cfg)
-	return http.ListenAndServe(":8000", h)
+	port := fmt.Sprintf(":%d", cfg.Port)
+	return http.ListenAndServe(port, h)
 }
 
 // Handler  returns *WrapHandler with all engopints registered.
