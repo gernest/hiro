@@ -165,7 +165,7 @@ type Login struct {
 type CreateAccount struct {
 	Email           string `schema:"email" json:"email"`
 	Password        string `schema:"password" json:"password"`
-	ConfirmPassword string `schema:"confirm_password" json:"confirm_password"`
+	ConfirmPassword string `schema:"confirm" json:"confirm"`
 }
 
 // Message is the error message.

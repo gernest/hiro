@@ -21,7 +21,7 @@ const (
 	BadJSON    = "Problem parsing json"
 	BadBody    = "Problem reading request body"
 	BadRequest = "bad request"
-	Success    = "success"
+	Success    = "ok"
 
 	ConfigDir = "/etc/bq"
 
