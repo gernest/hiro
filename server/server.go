@@ -54,6 +54,7 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	wares = append(wares, models.Item{Key: keys.Warden, Value: warden})
 	mux.Use(CtxMiddleware(wares...))
 	mux.Use(User(l, jwt))
+	mux.Use(Logger)
 	mux.Get("/", Home)
 	mux.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		promhttp.Handler().ServeHTTP(w, r)

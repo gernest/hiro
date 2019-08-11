@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -86,4 +87,11 @@ func extract(r *http.Request) (string, error) {
 		return components[1], nil
 	}
 	return "", errors.New("bearer token can't be empty")
+}
+
+func Logger(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("[%s] %s \n", r.Method, r.URL.Path)
+		h.ServeHTTP(w, r)
+	})
 }
