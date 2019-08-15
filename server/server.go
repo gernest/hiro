@@ -17,7 +17,7 @@ import (
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/prom"
-	"github.com/gernest/hiro/qrcode"
+	"github.com/gernest/hiro/codes/qrcode"
 	"github.com/gernest/hiro/query"
 	"github.com/gernest/hiro/scan"
 
