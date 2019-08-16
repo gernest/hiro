@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -15,6 +14,7 @@ import (
 	"github.com/ory/ladon"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo/v4"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 
@@ -36,25 +36,22 @@ type Context struct {
 	Warden    *ladon.Ladon
 }
 
-// RequestContext returns *Context with the fields filled with values taken from
-// ctx. This will panic if the values are not present in the context. This will
-// silently ignore fields which have no values set in the context.
-func RequestContext(ctx context.Context) *Context {
+func RequestContext(ctx echo.Context) *Context {
 	c := &Context{}
-	if v := ctx.Value(keys.JwtKey); v != nil {
+	if v := ctx.Get(keys.JwtKey); v != nil {
 		c.JWT = v.(*models.JWT)
 	}
 
-	if v := ctx.Value(keys.LoggerKey); v != nil {
+	if v := ctx.Get(keys.LoggerKey); v != nil {
 		c.Logger = v.(*zap.Logger)
 	}
-	if v := ctx.Value(keys.DB); v != nil {
+	if v := ctx.Get(keys.DB); v != nil {
 		c.DB = v.(*query.SQL)
 	}
-	if v := ctx.Value(keys.Session); v != nil {
+	if v := ctx.Get(keys.Session); v != nil {
 		c.Claims = v.(*jwt.StandardClaims)
 	}
-	if v := ctx.Value(keys.Warden); v != nil {
+	if v := ctx.Get(keys.Warden); v != nil {
 		c.Warden = v.(*ladon.Ladon)
 	}
 	return c
@@ -185,4 +182,24 @@ func ParseJWTToken(j *models.JWT, tokenString string) (*jwt.StandardClaims, erro
 		return nil, err
 	}
 	return token.Claims.(*jwt.StandardClaims), nil
+}
+
+func Forbid(ctx echo.Context) error {
+	return ctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
+}
+
+func BadRequest(ctx echo.Context) error {
+	return ctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadRequest})
+}
+
+func BadToken(ctx echo.Context) error {
+	return ctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
+}
+
+func NotFound(ctx echo.Context) error {
+	return ctx.JSON(http.StatusNotFound, models.APIError{Message: http.StatusText(http.StatusNotFound)})
+}
+
+func Internal(ctx echo.Context) error {
+	return ctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
 }

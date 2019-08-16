@@ -3,10 +3,7 @@ package qrcode
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
-	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -16,49 +13,34 @@ import (
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/resource"
 	"github.com/gernest/hiro/util"
+	"github.com/labstack/echo/v4"
 	"github.com/ory/ladon"
-
 	uuid "github.com/satori/go.uuid"
 )
 
-// Create generates a new qrcode which encodes a unique url to associate the
-// generated image with metadata that is stored in the database.
-//
-// The request must be authorized through JWT token. The authentication logic is
-// done inside this handler. This expects the payload to be json data in the
-// request body.
-//
-// Sample request body
-// {
-//   "width": 100,
-//   "height": 100,
-//   "should_redirect": true,
-//   "redirect_url": "/home"
-// }
-func Create(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Create(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("qr-create"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.create checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.create checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	usr := token.Subject.String()
 	err = ctx.Warden.IsAllowed(&ladon.Request{
@@ -70,120 +52,84 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		log.Error("qr.create checking access permissions",
+		log.Error("checking access permissions",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
 	}
 	m := &models.QRReq{}
 	err = json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("qr.create fail to unmarshal request body",
+		log.Error("fail to unmarshal request body",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadJSON})
 	}
 	id := uuid.NewV4()
-	content := fmt.Sprintf("%s/scan/%s", ctx.Host, id)
 	now := time.Now().UTC()
-	queryImageURL := make(url.Values)
-	queryImageURL.Set("uuid", id.String())
-	queryImageURL.Set("usr", token.Issuer.String())
-	queryImageURL.Set("width", "100")
-	queryImageURL.Set("height", "100")
 	c := &models.QR{
 		UUID:           id,
 		Name:           m.Name,
 		UserID:         token.Issuer,
-		URL:            content,
-		ImageURL:       fmt.Sprintf("%s/img?%s", ctx.ImageHost, queryImageURL.Encode()),
 		ShouldRedirect: m.ShouldRedirect,
 		RedirectURL:    m.RedirectURL,
 		CreatedAt:      now,
 		UpdatedAt:      now,
+		Size:           m.Size,
 	}
 	if m.Context != nil {
 		c.Context = m.Context
 	}
 	err = ctx.DB.CreateQR(r.Context(), c, m.Groups...)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-			http.StatusInternalServerError)
-		log.Error("qr.create fail to save",
+		log.Error("fail to save",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
 	}
-	util.WriteJSON(w, c, http.StatusOK)
+	return rctx.JSON(http.StatusOK, c)
 }
 
-func getDimension(q url.Values) (int, int, error) {
-	w, h := q.Get("width"), q.Get("height")
-	width, err := strconv.Atoi(w)
-	if err != nil {
-		return 0, 0, err
-	}
-	height, err := strconv.Atoi(h)
-	if err != nil {
-		return 0, 0, err
-	}
-	return width, height, nil
-}
-
-// View displays information related to the QRCode.
-func View(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func View(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("qr-view"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
 	}
-	params := alien.GetParams(r)
-	pid := params.Get("uuid")
+	pid := rctx.Param("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
-			http.StatusBadRequest)
-		log.Error("qr.view cant parse uuid",
-			zap.Error(err),
-			zap.String("uuid", pid),
-		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadRequest})
 	}
 	o, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			util.WriteJSON(w, &models.APIError{Message: keys.IsNotExist},
-				http.StatusNotFound)
-		} else {
-			util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-				http.StatusInternalServerError)
-		}
 		log.Error("qr.view fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
-		return
+		if err == sql.ErrNoRows {
+			return rctx.JSON(http.StatusNotFound, models.APIError{Message: keys.IsNotExist})
+		}
+		return rctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
+
 	}
 
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking token",
+		log.Error(" checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	usr := token.Issuer.String()
 	err = ctx.Warden.IsAllowed(&ladon.Request{
@@ -195,118 +141,109 @@ func View(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		log.Error("qr.view checking access permissions",
+		log.Error("checking access permissions",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
 	}
-
-	util.WriteJSON(w, o, http.StatusOK)
+	return rctx.JSON(http.StatusOK, o)
 }
 
 // List list generated qrcodes.
-func List(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func List(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("qr-list"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	opts, err := util.ListOptions(r)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking query params",
+		log.Error("checking query params",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	o, err := ctx.DB.ListQR(r.Context(), token.Subject, opts)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-			http.StatusInternalServerError)
 		log.Error("qr.view fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
-		return
+		return rctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
 	}
-	util.WriteJSON(w,
+	return rctx.JSON(http.StatusOK,
 		models.QRList{QRCodes: o, Options: opts,
 			Total: ctx.DB.TotalCodes(r.Context(), token.Subject),
 		},
-		http.StatusOK)
+	)
+
 }
 
 // Delete deletes generated qrcodes.
-func Delete(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Delete(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("qr-delete"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	params := alien.GetParams(r)
 	pid := params.Get("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
-			http.StatusBadRequest)
 		log.Error("qr.delete cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("qr.list checking token",
+		log.Error("checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadToken(rctx)
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
 		log.Error("qr.delete checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadToken(rctx)
 	}
 	code, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			util.WriteJSON(w, &models.APIError{Message: http.StatusText(http.StatusNotFound)}, http.StatusNotFound)
-			log.Info("qr.delete missing qrcode",
+			log.Info("missing qrcode",
 				zap.String("uuid", id.String()),
 				zap.String("subject", token.Subject.String()),
 			)
-			return
+			return util.NotFound(rctx)
 		}
 		log.Error("qr.delete getting qrcode",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
 	usr := token.Issuer.String()
 	err = ctx.Warden.IsAllowed(&ladon.Request{
@@ -318,66 +255,58 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		log.Error("qr.view checking access permissions",
+		log.Error("checking access permissions",
 			zap.Error(err),
 		)
-		return
+		return util.Forbid(rctx)
 	}
 	err = ctx.DB.DeleteQR(r.Context(), id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-			http.StatusInternalServerError)
-		log.Error("qr.view fail to retrieve stored qrcode info",
+		log.Error("fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, &models.Status{Status: keys.Success}, http.StatusOK)
+	return rctx.JSON(http.StatusOK, models.Status{Status: keys.Success})
 }
 
 // Update updates information stored with the qrcode.
-func Update(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Update(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("qr-update"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	params := alien.GetParams(r)
 	id, err := uuid.FromString(params.Get("uuid"))
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Invalid}, http.StatusBadRequest)
-		log.Error("qr.update can't parse uuid",
+		log.Error("can't parse uuid",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	info := &models.QR{}
 
 	err = json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("qr.update fail to unmarshal request body",
+		log.Error("fail to unmarshal request body",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	o, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			util.WriteJSON(w, models.APIError{Message: keys.IsNotExist},
-				http.StatusNotFound)
-		} else {
-			util.WriteJSON(w, models.APIError{Message: keys.BadRequest},
-				http.StatusInternalServerError)
+			return util.NotFound(rctx)
 		}
 		log.Error("qr.update fail to get info data",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
 	o.Name = info.Name
 	o.ShouldRedirect = info.ShouldRedirect
@@ -393,11 +322,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 	err = ctx.DB.UpdateQR(r.Context(), o)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusBadRequest)
-		log.Error("qr.update failed to update",
+		log.Error("failed to update",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
+
 	}
-	util.WriteJSON(w, o, http.StatusOK)
+	return rctx.JSON(http.StatusOK, o)
 }

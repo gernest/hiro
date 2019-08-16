@@ -36,7 +36,12 @@ type QR struct {
 	CreatedAt      time.Time      `json:"created_at,omitempty"`
 	UpdatedAt      time.Time      `json:"updated_at,omitempty"`
 	Groups         []*Collection  `json:"groups,omitempty"`
-	id             string
+	Size           *QRSize        `json:"size,omitempty"`
+}
+
+type QRSize struct {
+	Height int
+	Width  int
 }
 
 func (q *QR) DownloadName() string {
@@ -48,11 +53,7 @@ func (q *QR) DownloadName() string {
 }
 
 func (q *QR) ID() string {
-	if q.id != "" {
-		return q.id
-	}
-	q.id = q.UUID.String()
-	return q.id
+	return q.UUID.String()
 }
 
 type Collection struct {
@@ -209,19 +210,7 @@ type Status struct {
 //
 // swagger:parameters qrReq createQRCode
 type QRReq struct {
-
-	// Width is the size in width for the generated png image of the qe code
-	//
-	// in: body
-	// required: false
-	Width int64 `json:"width,omitempty"`
-
-	// Height is the height dimension of the generated png file of the qr code
-	//
-	// in:body
-	// required: false
-	Height int64 `json:"height,omitempty"`
-
+	Size           *QRSize        `json:"size,omitempty"`
 	ShouldRedirect bool           `json:"should_redirect"`
 	RedirectURL    string         `json:"redirect_url,omitempty"`
 	Name           string         `json:"name"`
