@@ -6,20 +6,19 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"github.com/gernest/alien"
 	"github.com/gernest/hiro/access"
 	"github.com/gernest/hiro/accounts"
 	"github.com/gernest/hiro/assets"
+	"github.com/gernest/hiro/codes/qrcode"
 	"github.com/gernest/hiro/collections"
 	"github.com/gernest/hiro/config"
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/prom"
-	"github.com/gernest/hiro/codes/qrcode"
 	"github.com/gernest/hiro/query"
-	"github.com/gernest/hiro/scan"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 
@@ -36,8 +35,10 @@ func ServeAPI(ctx context.Context, db *query.SQL, cfg *config.Config) error {
 
 // Handler  returns *WrapHandler with all engopints registered.
 func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handler {
-	mux := alien.New()
-	l, _ := zap.NewProduction()
+	mux := echo.New()
+	mux.Use(middleware.LoggerWithConfig(Logger()))
+	mux.Use(middleware.Recover())
+	l, _ := zap.NewDevelopment()
 	jwt := &models.JWT{Secret: []byte(cfg.Secret)}
 	wares := []models.Item{
 		models.Item{Key: keys.DB, Value: db},
@@ -54,58 +55,38 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	wares = append(wares, models.Item{Key: keys.Warden, Value: warden})
 	mux.Use(CtxMiddleware(wares...))
 	mux.Use(User(l, jwt))
-	mux.Use(Logger)
-	mux.Get("/", Home)
-	mux.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		promhttp.Handler().ServeHTTP(w, r)
-	})
-	api := mux.Group("/v1")
+	mux.GET("/", Home)
+	mux.GET("/user/*", Home)
+	mux.GET("/metrics", Metrics)
+	codes := mux.Group("/codes")
 
 	//qrcode api
-	api.Post("/qr", qrcode.Create)
-	api.Get("/qr", qrcode.List)
-	api.Get("/qr/:uuid", qrcode.View)
-	api.Post("/qr/:uuid", qrcode.Update)
-	api.Delete("/qr/:uuid", qrcode.Delete)
+	qr := codes.Group("/qrcode")
+	qr.POST("/qr", qrcode.Create)
+	qr.GET("/qr", qrcode.List)
+	qr.GET("/qr/:uuid", qrcode.View)
+	qr.POST("/qr/:uuid", qrcode.Update)
+	qr.DELETE("/qr/:uuid", qrcode.Delete)
 
 	// collections
-	api.Post("/collections", collections.Create)
-	api.Get("/collections", collections.List)
-	api.Get("/collections/view", collections.View)
-	api.Delete("/collections/delete", collections.Delete)
-	api.Post("/collections/assign", collections.Assign)
-	api.Post("/collections/deassign", collections.DeAssign)
+	co := mux.Group("/collections")
+	co.POST("/collections", collections.Create)
+	co.GET("/collections", collections.List)
+	co.GET("/collections/view", collections.View)
+	co.DELETE("/collections/delete", collections.Delete)
+	co.POST("/collections/assign", collections.Assign)
+	co.POST("/collections/deassign", collections.DeAssign)
 
 	//accounts
-	mux.Post("/register", accounts.Create)
-	mux.Post("/login", accounts.Login)
-
-	// scan
-	mux.Get("/scan/:uuid", scan.Scan)
-
-	mux.Get("/privacy", Privacy)
-
+	mux.POST("/register", accounts.Create)
+	mux.POST("/login", accounts.Login)
 	//static assets
 	s := gziphandler.GzipHandler(Static())
-
-	mux.AddRoute(http.MethodGet, "/static/*", func(w http.ResponseWriter, r *http.Request) {
-		s.ServeHTTP(w, r)
+	mux.GET("/static/*", func(ctx echo.Context) error {
+		s.ServeHTTP(ctx.Response(), ctx.Request())
+		return nil
 	})
-	mux.NotFoundHandler(http.HandlerFunc(NotFound))
 	return prom.Wrap(mux)
-}
-
-// CtxMiddleware injects the values into the request context.
-func CtxMiddleware(items ...models.Item) func(http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-			for _, v := range items {
-				ctx = context.WithValue(ctx, v.Key, v.Value)
-			}
-			h.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
 }
 
 // Static is a handlerfor serving static assets.
@@ -120,19 +101,16 @@ func Static() http.Handler {
 }
 
 // Home renders the home page.
-func Home(w http.ResponseWriter, r *http.Request) {
+func Home(ctx echo.Context) error {
 	b, err := assets.Asset("static/index.html")
 	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
+		// w.Write([]byte(err.Error()))
+		return err
 	}
-	w.Write(b)
+	return ctx.HTML(http.StatusOK, string(b))
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
-}
-
-func Privacy(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+func Metrics(ctx echo.Context) error {
+	promhttp.Handler().ServeHTTP(ctx.Response(), ctx.Request())
+	return nil
 }

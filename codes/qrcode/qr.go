@@ -30,14 +30,14 @@ func Create(rctx echo.Context) error {
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
@@ -52,7 +52,7 @@ func Create(rctx echo.Context) error {
 		},
 	})
 	if err != nil {
-		log.Error("checking access permissions",
+		log.Debug("checking access permissions",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
@@ -60,7 +60,7 @@ func Create(rctx echo.Context) error {
 	m := &models.QRReq{}
 	err = json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
-		log.Error("fail to unmarshal request body",
+		log.Debug("fail to unmarshal request body",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadJSON})
@@ -82,7 +82,7 @@ func Create(rctx echo.Context) error {
 	}
 	err = ctx.DB.CreateQR(r.Context(), c, m.Groups...)
 	if err != nil {
-		log.Error("fail to save",
+		log.Debug("fail to save",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
@@ -107,7 +107,7 @@ func View(rctx echo.Context) error {
 	}
 	o, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {
-		log.Error("qr.view fail to retrieve stored qrcode info",
+		log.Debug("qr.view fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
 		if err == sql.ErrNoRows {
@@ -119,14 +119,14 @@ func View(rctx echo.Context) error {
 
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		log.Error(" checking token",
+		log.Debug(" checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
@@ -141,7 +141,7 @@ func View(rctx echo.Context) error {
 		},
 	})
 	if err != nil {
-		log.Error("checking access permissions",
+		log.Debug("checking access permissions",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusForbidden, models.APIError{Message: keys.Forbidden})
@@ -162,28 +162,28 @@ func List(rctx echo.Context) error {
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	opts, err := util.ListOptions(r)
 	if err != nil {
-		log.Error("checking query params",
+		log.Debug("checking query params",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadToken})
 	}
 	o, err := ctx.DB.ListQR(r.Context(), token.Subject, opts)
 	if err != nil {
-		log.Error("qr.view fail to retrieve stored qrcode info",
+		log.Debug("qr.view fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
 		return rctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
@@ -211,7 +211,7 @@ func Delete(rctx echo.Context) error {
 	pid := params.Get("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		log.Error("qr.delete cant parse uuid",
+		log.Debug("qr.delete cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
@@ -219,14 +219,14 @@ func Delete(rctx echo.Context) error {
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		log.Error("checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
 		return util.BadToken(rctx)
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		log.Error("qr.delete checking token",
+		log.Debug("qr.delete checking token",
 			zap.Error(err),
 		)
 		return util.BadToken(rctx)
@@ -240,7 +240,7 @@ func Delete(rctx echo.Context) error {
 			)
 			return util.NotFound(rctx)
 		}
-		log.Error("qr.delete getting qrcode",
+		log.Debug("qr.delete getting qrcode",
 			zap.Error(err),
 		)
 		return util.Internal(rctx)
@@ -255,14 +255,14 @@ func Delete(rctx echo.Context) error {
 		},
 	})
 	if err != nil {
-		log.Error("checking access permissions",
+		log.Debug("checking access permissions",
 			zap.Error(err),
 		)
 		return util.Forbid(rctx)
 	}
 	err = ctx.DB.DeleteQR(r.Context(), id)
 	if err != nil {
-		log.Error("fail to retrieve stored qrcode info",
+		log.Debug("fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
 		return util.Internal(rctx)
@@ -284,7 +284,7 @@ func Update(rctx echo.Context) error {
 	params := alien.GetParams(r)
 	id, err := uuid.FromString(params.Get("uuid"))
 	if err != nil {
-		log.Error("can't parse uuid",
+		log.Debug("can't parse uuid",
 			zap.Error(err),
 		)
 		return util.BadRequest(rctx)
@@ -293,7 +293,7 @@ func Update(rctx echo.Context) error {
 
 	err = json.NewDecoder(r.Body).Decode(info)
 	if err != nil {
-		log.Error("fail to unmarshal request body",
+		log.Debug("fail to unmarshal request body",
 			zap.Error(err),
 		)
 		return util.BadRequest(rctx)
@@ -303,7 +303,7 @@ func Update(rctx echo.Context) error {
 		if err == sql.ErrNoRows {
 			return util.NotFound(rctx)
 		}
-		log.Error("qr.update fail to get info data",
+		log.Debug("qr.update fail to get info data",
 			zap.Error(err),
 		)
 		return util.Internal(rctx)
@@ -322,7 +322,7 @@ func Update(rctx echo.Context) error {
 	}
 	err = ctx.DB.UpdateQR(r.Context(), o)
 	if err != nil {
-		log.Error("failed to update",
+		log.Debug("failed to update",
 			zap.Error(err),
 		)
 		return util.Internal(rctx)

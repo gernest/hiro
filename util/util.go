@@ -203,3 +203,11 @@ func NotFound(ctx echo.Context) error {
 func Internal(ctx echo.Context) error {
 	return ctx.JSON(http.StatusInternalServerError, models.APIError{Message: keys.InternalError})
 }
+
+func Invalid(ctx echo.Context) error {
+	return ctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.FailedValidation})
+}
+
+func Ok(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, models.Status{Status: keys.Success})
+}

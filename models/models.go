@@ -138,7 +138,7 @@ type JWT struct {
 
 // Item is a keyvalue pair.
 type Item struct {
-	Key   interface{}
+	Key   string
 	Value interface{}
 }
 

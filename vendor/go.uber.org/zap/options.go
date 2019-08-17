@@ -70,7 +70,7 @@ func Fields(fs ...Field) Option {
 // zapcore.Lock functions are the simplest ways to protect files with a mutex.
 func ErrorOutput(w zapcore.WriteSyncer) Option {
 	return optionFunc(func(log *Logger) {
-		log.errorOutput = w
+		log.DebugOutput = w
 	})
 }
 

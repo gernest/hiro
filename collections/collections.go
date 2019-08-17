@@ -6,40 +6,39 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/resource"
 	"github.com/gernest/hiro/util"
+	"github.com/labstack/echo/v4"
 	"github.com/ory/ladon"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
 // Create creates a new collection.
-func Create(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Create(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-create"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("collection.create checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("collections.create checking token",
+		log.Debug(" checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	usr := token.Subject.String()
 	err = ctx.Warden.IsAllowed(&ladon.Request{
@@ -51,21 +50,19 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		log.Error("collections.create checking access permissions",
+		log.Debug("checking access permissions",
 			zap.Error(err),
 		)
-		return
+		return util.Forbid(rctx)
 	}
 
 	m := &models.CollectionReq{}
 	err = json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("collections.create fail to unmarshal request body",
+		log.Debug("fail to unmarshal request body",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	now := time.Now()
 	c, err := ctx.DB.CreateCollection(r.Context(), &models.Collection{
@@ -77,81 +74,70 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: now,
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusInternalServerError)
-		log.Error("collection.create saving new collection",
+		log.Debug("saving new collection",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, c, http.StatusOK)
+	return rctx.JSON(http.StatusOK, c)
 }
 
-func View(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func View(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-view"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	params := r.URL.Query()
 	pid := params.Get("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
-			http.StatusBadRequest)
-		log.Error("collection.view cant parse uuid",
+		log.Debug("cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	o, err := ctx.DB.GetCollection(r.Context(), id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			util.WriteJSON(w, &models.APIError{Message: keys.IsNotExist},
-				http.StatusNotFound)
-		} else {
-			util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-				http.StatusInternalServerError)
+			return util.NotFound(rctx)
 		}
-		log.Error("collection.view fail to retrieve stored qrcode info",
+		log.Debug("fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, o, http.StatusOK)
+	return rctx.JSON(http.StatusOK, o)
 }
 
-// List renders json response of all collections owned by the subject who
-// issued the request.
-//
-//This handler is protected, only valid authenticated tokens are processed.
-func List(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func List(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-list"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	tkID, err := uuid.FromString(ctx.Claims.Id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("collection.list checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	token, err := ctx.DB.GetToken(r.Context(), tkID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("collections.list checking token",
+		log.Debug("checking token",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	usr := token.Subject.String()
 	err = ctx.Warden.IsAllowed(&ladon.Request{
@@ -163,123 +149,112 @@ func List(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		log.Error("collections.list checking access permissions",
+		log.Debug("checking access permissions",
 			zap.Error(err),
 		)
-		return
+		return util.Forbid(rctx)
 	}
 	opts, err := util.ListOptions(r)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-		log.Error("collection.list checking query params",
+		log.Debug("checking query params",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	o, err := ctx.DB.ListCollections(r.Context(), token.Subject, opts)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-			http.StatusInternalServerError)
-		log.Error("collection.list fail to retrieve collcetions list",
+		log.Debug("fail to retrieve collcetions list",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, models.CollectionList{
-		Collections: o,
-	}, http.StatusOK)
+	return rctx.JSON(http.StatusOK, o)
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Delete(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-delete"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	params := r.URL.Query()
 	pid := params.Get("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
-			http.StatusBadRequest)
-		log.Error("qr.delete cant parse uuid",
+		log.Debug("qr.delete cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	err = ctx.DB.DeleteCollection(r.Context(), id)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-			http.StatusInternalServerError)
-		log.Error("collection.view fail to retrieve stored qrcode info",
+		log.Debug("fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, &models.Status{Status: keys.Success}, http.StatusOK)
+	return util.Ok(rctx)
 }
 
 // Assign assigns a collection to the qrcode.
-func Assign(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func Assign(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-assign"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 	m := &models.CollectionAssignReq{}
 	err := json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("collections.create fail to unmarshal request body",
+		log.Debug("collections.create fail to unmarshal request body",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	err = ctx.DB.AssignCollection(r.Context(), m.ID, m.QRID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusInternalServerError)
-		log.Error("collection.assign saving new collection",
+		log.Debug(" saving new collection",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, &models.Status{Status: keys.Success}, http.StatusOK)
+	return util.Ok(rctx)
 }
 
-func DeAssign(w http.ResponseWriter, r *http.Request) {
-	ctx := util.RequestContext(r.Context())
+func DeAssign(rctx echo.Context) error {
+	ctx := util.RequestContext(rctx)
+	r := rctx.Request()
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("collections-deasign"),
 	)
 	if ctx.Claims == nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-		return
+		return util.Forbid(rctx)
 	}
 
 	m := &models.CollectionAssignReq{}
 	err := json.NewDecoder(r.Body).Decode(m)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadJSON}, http.StatusBadRequest)
-		log.Error("collections.create fail to unmarshal request body",
+		log.Debug("fail to unmarshal request body",
 			zap.Error(err),
 		)
-		return
+		return util.BadRequest(rctx)
 	}
 	err = ctx.DB.DeAssignCollection(r.Context(), m.ID, m.QRID)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.InternalError}, http.StatusInternalServerError)
-		log.Error("collection.assign saving new collection",
+		log.Debug("collection.assign saving new collection",
 			zap.Error(err),
 		)
-		return
+		return util.Internal(rctx)
 	}
-	util.WriteJSON(w, &models.Status{Status: keys.Success}, http.StatusOK)
+	return util.Ok(rctx)
 }

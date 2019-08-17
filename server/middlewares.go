@@ -1,9 +1,7 @@
 package server
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,27 +9,28 @@ import (
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/util"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
 )
 
 // MustHeader makesure the headers are present and matches.
-func MustHeader(head ...http.Header) func(http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func MustHeader(head ...http.Header) echo.MiddlewareFunc {
+	return func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			r := ctx.Request()
 			for _, hd := range head {
 				for key := range hd {
-					a := r.Header.Get(key)
-					b := hd.Get(key)
+					a := strings.ToLower(r.Header.Get(key))
+					b := strings.ToLower(hd.Get(key))
 					if a != b {
-						util.WriteJSON(w, &models.APIError{Message: "Fobidden"}, http.StatusForbidden)
-						return
+						return util.Forbid(ctx)
 					}
 				}
 			}
-			h.ServeHTTP(w, r)
-		})
+			return h(ctx)
+		}
 	}
-
 }
 
 func jsonHeader() http.Header {
@@ -41,32 +40,40 @@ func jsonHeader() http.Header {
 }
 
 // User decodes jwt token if present and injects it into request context.
-func User(log *zap.Logger, jwt *models.JWT) func(http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func User(log *zap.Logger, jwt *models.JWT) echo.MiddlewareFunc {
+	ulog := log.With(zap.Namespace("user-middleware"))
+	return func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			r := ctx.Request()
 			tk, err := extract(r)
 			if err != nil {
-				// log.Error("jwt",
-				// 	zap.String("url", r.URL.Path),
-				// 	zap.Error(err))
-				//TODO: handle error
+				ulog.Debug("extracting token", zap.Error(err))
 			} else {
 				s, err := util.ParseJWTToken(jwt, tk)
 				if err != nil {
-					log.Error("jwt", zap.Error(err))
+					ulog.Debug("parsing token", zap.Error(err))
 				} else {
 					if err := s.Valid(); err != nil {
-						log.Error("jwt", zap.Error(err))
+						ulog.Debug("validating token", zap.Error(err))
 					} else {
-						ctx := context.WithValue(r.Context(),
-							helper(keys.Session), s)
-						h.ServeHTTP(w, r.WithContext(ctx))
-						return
+						ctx.Set(keys.Session, s)
 					}
 				}
 			}
-			h.ServeHTTP(w, r)
-		})
+			return h(ctx)
+		}
+	}
+}
+
+// CtxMiddleware injects the values into the request context.
+func CtxMiddleware(items ...models.Item) echo.MiddlewareFunc {
+	return func(h echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			for _, v := range items {
+				ctx.Set(v.Key, v.Value)
+			}
+			return h(ctx)
+		}
 	}
 }
 
@@ -89,9 +96,8 @@ func extract(r *http.Request) (string, error) {
 	return "", errors.New("bearer token can't be empty")
 }
 
-func Logger(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("[%s] %s \n", r.Method, r.URL.Path)
-		h.ServeHTTP(w, r)
-	})
+func Logger() middleware.LoggerConfig {
+	c := middleware.DefaultLoggerConfig
+	c.Format = "${time_rfc3339_nano} [${id}] [${method}] ${uri} ${status}\n"
+	return c
 }

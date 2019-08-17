@@ -43,7 +43,7 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
 			http.StatusBadRequest)
-		log.Error("scan cant parse uuid",
+		log.Debug("scan cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
@@ -59,7 +59,7 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 			util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
 				http.StatusInternalServerError)
 		}
-		log.Error("scan fail to retrieve stored qrcode info",
+		log.Debug("scan fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
 		ev.Status = http.StatusInternalServerError
@@ -75,7 +75,7 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 		tkID, err := uuid.FromString(ctx.Claims.Id)
 		if err != nil {
 			util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-			log.Error("qr.list checking token",
+			log.Debug("qr.list checking token",
 				zap.Error(err),
 			)
 			ev.Status = http.StatusBadRequest
@@ -84,7 +84,7 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 		token, err := ctx.DB.GetToken(r.Context(), tkID)
 		if err != nil {
 			util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-			log.Error("scan checking token",
+			log.Debug("scan checking token",
 				zap.Error(err),
 			)
 			ev.Status = http.StatusBadRequest
@@ -103,7 +103,7 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 			})
 			if err != nil {
 				util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
-				log.Error("scan checking access permissions",
+				log.Debug("scan checking access permissions",
 					zap.Error(err),
 				)
 				ev.Status = http.StatusForbidden
