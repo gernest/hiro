@@ -43,6 +43,8 @@ const (
 	//JwtKey key used to sore *JWT instance in the context.
 	JwtKey = "jwt"
 
+	ContextKey = "request_context_key"
+
 	//DB stores *sql.DB instance.
 	DB = "db"
 

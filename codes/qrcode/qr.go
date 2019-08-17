@@ -102,7 +102,7 @@ func View(rctx echo.Context) error {
 	pid := rctx.Param("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		return rctx.JSON(http.StatusBadRequest, models.APIError{Message: keys.BadRequest})
+		return util.BadRequest(rctx)
 	}
 	o, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {

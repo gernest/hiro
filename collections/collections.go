@@ -168,7 +168,7 @@ func List(rctx echo.Context) error {
 		)
 		return util.Internal(rctx)
 	}
-	return rctx.JSON(http.StatusOK, o)
+	return rctx.JSON(http.StatusOK, models.CollectionList{Collections: o})
 }
 
 func Delete(rctx echo.Context) error {

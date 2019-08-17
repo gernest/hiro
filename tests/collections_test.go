@@ -23,7 +23,7 @@ func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 			},
 		))
 		w := httptest.NewRecorder()
-		collections.Create(w, r)
+		collections.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -38,7 +38,7 @@ func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 			query.Set("uuid", c.ID())
 			r := ctx.Req("GET", "/v1/collections/view?"+query.Encode(), nil)
 			w := httptest.NewRecorder()
-			collections.View(w, r)
+			collections.View(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -51,7 +51,7 @@ func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 		ts.Run("list", func(ts *testing.T) {
 			r := ctx.Req("GET", "/v1/collections", nil)
 			w := httptest.NewRecorder()
-			collections.List(w, r)
+			collections.List(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -77,7 +77,7 @@ func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 				},
 			))
 			w := httptest.NewRecorder()
-			collections.Assign(w, r)
+			collections.Assign(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusOK {
 				ts.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -92,7 +92,7 @@ func RunCollectionsTest(t *testing.T, ctx *testutil.Context) {
 			query.Set("uuid", c.ID())
 			r := ctx.Req("POST", "/v1/collections/delete?"+query.Encode(), nil)
 			w := httptest.NewRecorder()
-			collections.Delete(w, r)
+			collections.Delete(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusOK {
 				t.Errorf("expected %d got %d", http.StatusOK, w.Code)
 			}

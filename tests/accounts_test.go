@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 	"github.com/gernest/hiro/testutil"
 	"github.com/gernest/hiro/util"
 	uuid "github.com/satori/go.uuid"
-	"go.uber.org/zap"
 )
 
 func TestJWT(t *testing.T) {
@@ -214,43 +212,24 @@ func TestValidation(t *testing.T) {
 const name = "gernestaccounts"
 const secret = "someSecret"
 
-func request(items ...models.Item) func(string, string, io.Reader) *http.Request {
-	return func(method, target string, body io.Reader) *http.Request {
-		r := httptest.NewRequest(method, target, body)
-		ctx := r.Context()
-		for _, v := range items {
-			ctx = context.WithValue(ctx, v.Key, v.Value)
-		}
-		return r.WithContext(ctx)
-	}
-}
-
 func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
-	db := ctx.DB
-	l, _ := zap.NewProduction()
-	jwt := &models.JWT{Secret: []byte(secret)}
-	req := request(
-		models.Item{Key: keys.DB, Value: db},
-		models.Item{Key: keys.LoggerKey, Value: l},
-		models.Item{Key: keys.JwtKey, Value: jwt},
-	)
 	email := "accounts@sample.email.com"
 	t.Run("register", func(ts *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
-			r := req("POST", "/register", nil)
+			r := httptest.NewRequest("POST", "/register", nil)
 			w := httptest.NewRecorder()
-			accounts.Create(w, r)
+			accounts.Create(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
 		})
 
-		r := req("POST", "/register", reqData(&models.CreateAccount{
+		r := httptest.NewRequest("POST", "/register", reqData(&models.CreateAccount{
 			Email:    testutil.TestEmail,
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()
-		accounts.Create(w, r)
+		accounts.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusUnprocessableEntity {
 			ts.Fatalf("expected %d got %d", http.StatusUnprocessableEntity, w.Code)
 		}
@@ -263,13 +242,13 @@ func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
 			ts.Errorf("expected %s got %s", keys.FailedValidation, a.Message)
 		}
 
-		r = req("POST", "/register", reqData(&models.CreateAccount{
+		r = httptest.NewRequest("POST", "/register", reqData(&models.CreateAccount{
 			Email:           email,
 			Password:        "pass",
 			ConfirmPassword: "pass",
 		}))
 		w = httptest.NewRecorder()
-		accounts.Create(w, r)
+		accounts.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %v %d got %d \n%s", r.Body == nil, http.StatusOK, w.Code, w.Body.String())
 		}
@@ -285,23 +264,23 @@ func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
 
 	t.Run("login", func(ts *testing.T) {
 		ts.Run("no body", func(ts *testing.T) {
-			r := req("POST", "/login", nil)
+			r := httptest.NewRequest("POST", "/login", nil)
 			w := httptest.NewRecorder()
-			accounts.Login(w, r)
+			accounts.Login(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
 			a := apiError(ts, w)
-			if a.Message != keys.BadJSON {
-				t.Errorf("expected %s got %s", keys.BadJSON, a.Message)
+			if a.Message != keys.BadRequest {
+				t.Errorf("expected %s got %s", keys.BadRequest, a.Message)
 			}
 		})
 		ts.Run("missing username ", func(ts *testing.T) {
-			r := req("POST", "/login", reqData(&models.Login{
+			r := httptest.NewRequest("POST", "/login", reqData(&models.Login{
 				Password: "pass",
 			}))
 			w := httptest.NewRecorder()
-			accounts.Login(w, r)
+			accounts.Login(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -311,11 +290,11 @@ func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
 			}
 		})
 		ts.Run("missing password ", func(ts *testing.T) {
-			r := req("POST", "/login", reqData(&models.Login{
+			r := httptest.NewRequest("POST", "/login", reqData(&models.Login{
 				Name: name,
 			}))
 			w := httptest.NewRecorder()
-			accounts.Login(w, r)
+			accounts.Login(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -325,12 +304,12 @@ func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
 			}
 		})
 		ts.Run("unknown user ", func(ts *testing.T) {
-			r := req("POST", "/login", reqData(&models.Login{
-				Name:     "some dude",
+			r := httptest.NewRequest("POST", "/login", reqData(&models.Login{
+				Name:     "some@me.com",
 				Password: "pass",
 			}))
 			w := httptest.NewRecorder()
-			accounts.Login(w, r)
+			accounts.Login(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusNotFound {
 				ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 			}
@@ -343,12 +322,12 @@ func RunAccountsTes(t *testing.T, ctx *testutil.Context) {
 				}
 			}
 		})
-		r := req("POST", "/login", reqData(&models.Login{
+		r := httptest.NewRequest("POST", "/login", reqData(&models.Login{
 			Name:     email,
 			Password: "pass",
 		}))
 		w := httptest.NewRecorder()
-		accounts.Login(w, r)
+		accounts.Login(testutil.TestContext(ctx, r, w))
 
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)

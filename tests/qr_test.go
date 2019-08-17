@@ -6,10 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gernest/alien"
+	"github.com/gernest/hiro/codes/qrcode"
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
-	"github.com/gernest/hiro/codes/qrcode"
 	"github.com/gernest/hiro/testutil"
 	uuid "github.com/satori/go.uuid"
 )
@@ -20,7 +19,7 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 		ts.Run("bad body", func(ts *testing.T) {
 			r := req("POST", "/v1/qr/", nil)
 			w := httptest.NewRecorder()
-			qrcode.Create(w, r)
+			qrcode.Create(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -34,7 +33,7 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 			orig := ctx.Claims.Id
 			ctx.Claims.Id = ""
 			w := httptest.NewRecorder()
-			qrcode.Create(w, r)
+			qrcode.Create(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -50,7 +49,7 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 			orig := ctx.Claims.Id
 			ctx.Claims.Id = uuid.NewV4().String()
 			w := httptest.NewRecorder()
-			qrcode.Create(w, r)
+			qrcode.Create(testutil.TestContext(ctx, r, w))
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
@@ -64,7 +63,7 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 		r := req("POST", "/v1/qr/", testutil.ReqData(&models.QRReq{}))
 
 		w := httptest.NewRecorder()
-		qrcode.Create(w, r)
+		qrcode.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -81,7 +80,7 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 		}))
 
 		w := httptest.NewRecorder()
-		qrcode.Create(w, r)
+		qrcode.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -94,21 +93,18 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 			// view created info
 			link := "/v1/qr/" + e.UUID.String()
 			r = req("GET", link, nil)
-
-			param, err := alien.ParseParams(link, "/v1/qr/:uuid")
-			if err != nil {
-				ts.Fatal(err)
-			}
-			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			qrcode.View(w, r)
+			rctx := testutil.TestContext(ctx, r, w)
+			rctx.SetParamNames("uuid")
+			rctx.SetParamValues(e.UUID.String())
+			qrcode.View(rctx)
 			if w.Code != http.StatusOK {
 				ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 			}
 			ve := &models.QR{}
 			err = json.Unmarshal(w.Body.Bytes(), ve)
 			if err != nil {
-				ts.Fatal(err)
+				ts.Fatal(err.Error() + w.Body.String())
 			}
 			if ve.UUID != e.UUID {
 				ts.Errorf("expected %s got %s", e.UUID, ve.UUID)
@@ -117,14 +113,11 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 			//view with invalid uuid
 			link = "/v1/qr/bad"
 			r = req("GET", link, nil)
-
-			param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-			if err != nil {
-				ts.Fatal(err)
-			}
-			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			qrcode.View(w, r)
+			rctx = testutil.TestContext(ctx, r, w)
+			rctx.SetParamNames("uuid")
+			rctx.SetParamValues("bad")
+			qrcode.View(rctx)
 			if w.Code != http.StatusBadRequest {
 				ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 			}
@@ -133,13 +126,11 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 			link = "/v1/qr/" + uuid.NewV4().String()
 			r = req("GET", link, nil)
 
-			param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-			if err != nil {
-				ts.Fatal(err)
-			}
-			r.Header.Add("_alien", param)
 			w = httptest.NewRecorder()
-			qrcode.View(w, r)
+			rctx = testutil.TestContext(ctx, r, w)
+			rctx.SetParamNames("uuid")
+			rctx.SetParamValues(uuid.NewV4().String())
+			qrcode.View(rctx)
 			if w.Code != http.StatusNotFound {
 				ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 			}
@@ -153,41 +144,33 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 				link = "/v1/qr/" + ve.UUID.String()
 				r = req("POST", link, nil)
 
-				param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-				if err != nil {
-					ts.Fatal(err)
-				}
-				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				qrcode.Update(w, r)
+				rctx = testutil.TestContext(ctx, r, w)
+				rctx.SetParamNames("uuid")
+				rctx.SetParamValues(ve.UUID.String())
+				qrcode.Update(rctx)
 				if w.Code != http.StatusBadRequest {
 					ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 				}
 
 				link = "/v1/qr/bad"
 				r = req("POST", link, nil)
-
-				param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-				if err != nil {
-					ts.Fatal(err)
-				}
-				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				qrcode.Update(w, r)
+				rctx = testutil.TestContext(ctx, r, w)
+				rctx.SetParamNames("uuid")
+				rctx.SetParamValues("bad")
+				qrcode.Update(rctx)
 				if w.Code != http.StatusBadRequest {
 					ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 				}
 
 				link = "/v1/qr/" + uuid.NewV4().String()
 				r = req("POST", link, testutil.ReqData(ve))
-
-				param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-				if err != nil {
-					ts.Fatal(err)
-				}
-				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				qrcode.Update(w, r)
+				rctx = testutil.TestContext(ctx, r, w)
+				rctx.SetParamNames("uuid")
+				rctx.SetParamValues(uuid.NewV4().String())
+				qrcode.Update(rctx)
 				if w.Code != http.StatusNotFound {
 					ts.Fatalf("expected %d got %d", http.StatusNotFound, w.Code)
 				}
@@ -195,14 +178,11 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 				ve.ShouldRedirect = true
 				link = "/v1/qr/" + ve.UUID.String()
 				r = req("POST", link, testutil.ReqData(ve))
-
-				param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-				if err != nil {
-					ts.Fatal(err)
-				}
-				r.Header.Add("_alien", param)
 				w = httptest.NewRecorder()
-				qrcode.Update(w, r)
+				rctx = testutil.TestContext(ctx, r, w)
+				rctx.SetParamNames("uuid")
+				rctx.SetParamValues(ve.UUID.String())
+				qrcode.Update(rctx)
 				if w.Code != http.StatusOK {
 					ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 				}
@@ -219,9 +199,8 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 	})
 	t.Run("delete", func(ts *testing.T) {
 		r := req("POST", "/v1/qr/", testutil.ReqData(&models.QRReq{}))
-
 		w := httptest.NewRecorder()
-		qrcode.Create(w, r)
+		qrcode.Create(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -233,27 +212,22 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 
 		link := "/v1/qr/bad"
 		r = req("DELETE", link, nil)
-
-		param, err := alien.ParseParams(link, "/v1/qr/:uuid")
-		if err != nil {
-			ts.Fatal(err)
-		}
-		r.Header.Add("_alien", param)
 		w = httptest.NewRecorder()
-		qrcode.Delete(w, r)
+		rctx := testutil.TestContext(ctx, r, w)
+		rctx.SetParamNames("uuid")
+		rctx.SetParamValues("bad")
+		qrcode.Delete(rctx)
 		if w.Code != http.StatusBadRequest {
 			ts.Fatalf("expected %d got %d", http.StatusBadRequest, w.Code)
 		}
+
 		link = "/v1/qr/" + e.UUID.String()
 		r = req("DELETE", link, nil)
-
-		param, err = alien.ParseParams(link, "/v1/qr/:uuid")
-		if err != nil {
-			ts.Fatal(err)
-		}
-		r.Header.Add("_alien", param)
 		w = httptest.NewRecorder()
-		qrcode.Delete(w, r)
+		rctx = testutil.TestContext(ctx, r, w)
+		rctx.SetParamNames("uuid")
+		rctx.SetParamValues(e.UUID.String())
+		qrcode.Delete(rctx)
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}
@@ -262,9 +236,8 @@ func RunQRcodeTest(t *testing.T, ctx *testutil.Context) {
 	t.Run("list", func(ts *testing.T) {
 		link := "/v1/qr/"
 		r := req("GET", link, nil)
-
 		w := httptest.NewRecorder()
-		qrcode.List(w, r)
+		qrcode.List(testutil.TestContext(ctx, r, w))
 		if w.Code != http.StatusOK {
 			ts.Fatalf("expected %d got %d", http.StatusOK, w.Code)
 		}

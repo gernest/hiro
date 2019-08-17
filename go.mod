@@ -14,7 +14,6 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/elazarl/go-bindata-assetfs v1.0.0
-	github.com/gernest/alien v0.1.0
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/golang/mock v1.1.1 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect

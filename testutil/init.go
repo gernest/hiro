@@ -18,6 +18,7 @@ import (
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/query"
 	"github.com/gernest/hiro/util"
+	"github.com/labstack/echo/v4"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -27,6 +28,16 @@ type Context struct {
 	Claims  *jwt.StandardClaims
 	DB      *query.SQL
 	items   []models.Item
+}
+
+func TestContext(ctx *Context, r *http.Request, w http.ResponseWriter) echo.Context {
+	e := echo.New()
+	c := e.NewContext(r, w)
+	for _, v := range ctx.items {
+		c.Set(v.Key, v.Value)
+	}
+	c.Set(keys.ContextKey, ctx)
+	return c
 }
 
 const TestEmail = "hiro@examples.com"
@@ -126,10 +137,6 @@ func (c *Context) SetHeader(r *http.Request) {
 
 func (c *Context) Req(method string, target string, body io.Reader) *http.Request {
 	r := httptest.NewRequest(method, target, body)
-	ctx := r.Context()
-	for _, v := range c.items {
-		ctx = context.WithValue(ctx, v.Key, v.Value)
-	}
 	c.SetHeader(r)
-	return r.WithContext(ctx)
+	return r
 }

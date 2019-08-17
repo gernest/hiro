@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -145,6 +146,9 @@ func Login(rctx echo.Context) error {
 	}
 	a, err := ctx.DB.GetAccount(r.Context(), c.Name)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return util.NotFound(rctx)
+		}
 		log.Debug("can't find a user", zap.Error(err))
 		return util.BadRequest(rctx)
 	}
