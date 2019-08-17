@@ -16,6 +16,7 @@ import (
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/prom"
 	"github.com/gernest/hiro/query"
+	"github.com/gernest/hiro/scan"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -80,6 +81,9 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	//accounts
 	mux.POST("/register", accounts.Create)
 	mux.POST("/login", accounts.Login)
+
+	// scan
+	mux.GET("/scan/:uuid", scan.Scan)
 	//static assets
 	s := gziphandler.GzipHandler(Static())
 	mux.GET("/static/*", func(ctx echo.Context) error {

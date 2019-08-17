@@ -57,24 +57,6 @@ func RequestContext(ctx echo.Context) *Context {
 	return c
 }
 
-// WriteJSON sets content type header and marshals v to the response body.
-func WriteJSON(w http.ResponseWriter, v interface{}, status int, h ...http.Header) {
-	d, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	for _, head := range h {
-		for key, value := range head {
-			for _, i := range value {
-				w.Header().Set(key, i)
-			}
-		}
-	}
-	w.Header().Set(headers.ContentType, headers.ApplicationJSON)
-	w.WriteHeader(status)
-	w.Write(d)
-}
-
 // AddToken add bearer token to request header.
 func AddToken(r *http.Request, token string) {
 	r.Header.Set(headers.Authorization, "Bearer "+token)

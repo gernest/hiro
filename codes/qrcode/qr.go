@@ -8,7 +8,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/gernest/alien"
 	"github.com/gernest/hiro/keys"
 	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/resource"
@@ -207,8 +206,7 @@ func Delete(rctx echo.Context) error {
 	if ctx.Claims == nil {
 		return util.Forbid(rctx)
 	}
-	params := alien.GetParams(r)
-	pid := params.Get("uuid")
+	pid := rctx.Param("uuid")
 	id, err := uuid.FromString(pid)
 	if err != nil {
 		log.Debug("qr.delete cant parse uuid",
@@ -281,8 +279,7 @@ func Update(rctx echo.Context) error {
 	if ctx.Claims == nil {
 		return util.Forbid(rctx)
 	}
-	params := alien.GetParams(r)
-	id, err := uuid.FromString(params.Get("uuid"))
+	id, err := uuid.FromString(rctx.Param("uuid"))
 	if err != nil {
 		log.Debug("can't parse uuid",
 			zap.Error(err),

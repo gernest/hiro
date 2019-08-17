@@ -5,65 +5,47 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gernest/alien"
 	"github.com/gernest/hiro/bus"
 	"github.com/gernest/hiro/headers"
-	"github.com/gernest/hiro/keys"
-	"github.com/gernest/hiro/models"
 	"github.com/gernest/hiro/resource"
 	"github.com/gernest/hiro/util"
+	"github.com/labstack/echo/v4"
 	"github.com/ory/ladon"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
-// Scan is the endpoint which matches the url embedded in the qrcode.This tracks
-// useful metrics which are used for analytics purpose.
-//
-// The messages/collected metrics are snt on message bus if the bus was
-// configured when the server was started. Successful scan can either redirect
-// to the url specified in the qrcode information, or it will serve default
-// qrcode viewing page.
-//
-// If Content-Type header is application/json then the qrcode info will be
-// served as json, this will however not redirect.
-func Scan(w http.ResponseWriter, r *http.Request) {
+func Scan(rctx echo.Context) error {
 	ev := bus.ScanEvent{
-		User:      new(uuid.UUID).String(),
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
-	ctx := util.RequestContext(r.Context())
+	r := rctx.Request()
+	ctx := util.RequestContext(rctx)
 	log := ctx.Logger.With(
 		zap.String("url", r.URL.String()),
+		zap.Namespace("scan"),
 	)
-	params := alien.GetParams(r)
-	pid := params.Get("uuid")
+	pid := rctx.Param("uuid")
 	ev.ID = pid
 	id, err := uuid.FromString(pid)
 	if err != nil {
-		util.WriteJSON(w, &models.APIError{Message: keys.BadRequest},
-			http.StatusBadRequest)
 		log.Debug("scan cant parse uuid",
 			zap.Error(err),
 			zap.String("uuid", pid),
 		)
 		ev.Status = http.StatusBadRequest
-		return
+		return util.BadRequest(rctx)
 	}
 	o, err := ctx.DB.GetQR(r.Context(), id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			util.WriteJSON(w, &models.APIError{Message: keys.IsNotExist},
-				http.StatusNotFound)
-		} else {
-			util.WriteJSON(w, &models.APIError{Message: keys.InternalError},
-				http.StatusInternalServerError)
+			return util.NotFound(rctx)
 		}
 		log.Debug("scan fail to retrieve stored qrcode info",
 			zap.Error(err),
 		)
 		ev.Status = http.StatusInternalServerError
-		return
+		return util.Internal(rctx)
 	}
 	if ctx.Claims != nil {
 		// the client/user who is making this call is authenticated. There are wto
@@ -74,21 +56,19 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 		// tracking.
 		tkID, err := uuid.FromString(ctx.Claims.Id)
 		if err != nil {
-			util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
-			log.Debug("qr.list checking token",
+			log.Debug("checking token",
 				zap.Error(err),
 			)
 			ev.Status = http.StatusBadRequest
-			return
+			return util.BadRequest(rctx)
 		}
 		token, err := ctx.DB.GetToken(r.Context(), tkID)
 		if err != nil {
-			util.WriteJSON(w, &models.APIError{Message: keys.BadToken}, http.StatusBadRequest)
 			log.Debug("scan checking token",
 				zap.Error(err),
 			)
 			ev.Status = http.StatusBadRequest
-			return
+			return util.BadRequest(rctx)
 		}
 		usr := token.Subject.String()
 		ev.User = usr
@@ -102,21 +82,19 @@ func Scan(w http.ResponseWriter, r *http.Request) {
 				},
 			})
 			if err != nil {
-				util.WriteJSON(w, &models.APIError{Message: keys.Forbidden}, http.StatusForbidden)
 				log.Debug("scan checking access permissions",
 					zap.Error(err),
 				)
 				ev.Status = http.StatusForbidden
-				return
+				return util.Forbid(rctx)
 			}
 		}
 	}
 	if !headers.IsJSONContent(r.Header) &&
 		o.ShouldRedirect && o.RedirectURL != "" {
 		ev.Status = http.StatusFound
-		http.Redirect(w, r, o.RedirectURL, http.StatusFound)
-		return
+		return rctx.Redirect(http.StatusFound, o.RedirectURL)
 	}
 	ev.Status = http.StatusOK
-	util.WriteJSON(w, o, http.StatusOK)
+	return rctx.JSON(http.StatusOK, o)
 }
