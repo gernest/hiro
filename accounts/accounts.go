@@ -3,6 +3,7 @@ package accounts
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gernest/hiro/access"
@@ -119,6 +120,7 @@ func Login(rctx echo.Context) error {
 		log.Debug("can't unmarshal json", zap.Error(err))
 		return util.BadRequest(rctx)
 	}
+	fmt.Printf("=======> %#v\n", c)
 	if c.Name == "" {
 		return rctx.JSON(http.StatusBadRequest, models.APIError{
 			Message: keys.FailedValidation,

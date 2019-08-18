@@ -79,8 +79,8 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 	co.POST("/collections/deassign", collections.DeAssign)
 
 	//accounts
-	mux.POST("/register", accounts.Create)
-	mux.POST("/login", accounts.Login)
+	mux.POST("/api/register", accounts.Create)
+	mux.POST("/api/login/account", accounts.Login)
 
 	// scan
 	mux.GET("/scan/:uuid", scan.Scan)
