@@ -5,7 +5,8 @@ vars:
   HIRO_JWT_SECRET: secret 
 
 tasks:
-  embed_assets:
+  frontend:
+    desc: generates and emebed frontend 
     deps: [build_and_prep_ui]
     cmds:
       - go-bindata -o assets/assets.gen.go -pkg assets -prefix assets/ assets/static/...
@@ -17,6 +18,7 @@ tasks:
 
     silent: true
   embed_templates:
+    desc: use go-bindata to embed templates
     cmds:
       - go-bindata -o templates/templates.gen.go -pkg templates -prefix templates/data templates/data/...
       - git add templates/
@@ -38,7 +40,8 @@ tasks:
       - rm -r assets/static && mkdir assets/static
       - cp -r ui/dist/ assets/static/
 
-  build:
+  build: 
+    desc: builds hiro binary
     vars:
       BUILD_HASH:
         sh: git rev-parse --short  HEAD
@@ -50,6 +53,7 @@ tasks:
       - go build -ldflags="-X main.commit={{.BUILD_HASH}} -X main.date={{.BUILD_TIME}} -X main.version={{.BUILD_TAG}}"
   migrate_up:
     silent: true
+    desc: creates database tables
     cmds: 
       - go  run ./scripts/migrate/main..go --db-conn={{.HIRO_DB_CONN}}  up
   migrate_down:
