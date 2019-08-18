@@ -3,7 +3,6 @@ package accounts
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gernest/hiro/access"
@@ -120,7 +119,6 @@ func Login(rctx echo.Context) error {
 		log.Debug("can't unmarshal json", zap.Error(err))
 		return util.BadRequest(rctx)
 	}
-	fmt.Printf("=======> %#v\n", c)
 	if c.Name == "" {
 		return rctx.JSON(http.StatusBadRequest, models.APIError{
 			Message: keys.FailedValidation,
@@ -171,5 +169,5 @@ func Login(rctx echo.Context) error {
 		log.Debug("creating jwt token", zap.Error(err))
 		return util.Internal(rctx)
 	}
-	return rctx.JSON(http.StatusOK, models.LoginRes{Token: s})
+	return rctx.JSON(http.StatusOK, models.LoginRes{Token: s, Status: keys.Success})
 }
