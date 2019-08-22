@@ -8,7 +8,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-
 var (
 	commit  = "<>"
 	date    = "<>"

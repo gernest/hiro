@@ -169,5 +169,5 @@ func Login(rctx echo.Context) error {
 		log.Debug("creating jwt token", zap.Error(err))
 		return util.Internal(rctx)
 	}
-	return rctx.JSON(http.StatusOK, models.LoginRes{Token: s, Status: keys.Success})
+	return rctx.JSON(http.StatusOK, models.LoginRes{Token: s})
 }
