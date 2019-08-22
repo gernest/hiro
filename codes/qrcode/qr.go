@@ -76,6 +76,13 @@ func Create(rctx echo.Context) error {
 		UpdatedAt:      now,
 		Size:           m.Size,
 	}
+	if c.Size == nil {
+		// set default size
+		c.Size = &models.QRSize{
+			Width:  100,
+			Height: 100,
+		}
+	}
 	if m.Context != nil {
 		c.Context = m.Context
 	}
