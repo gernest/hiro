@@ -80,7 +80,7 @@ func Handler(ctx context.Context, db *query.SQL, cfg *config.Config) http.Handle
 
 	//accounts
 	mux.POST("/api/register", accounts.Create)
-	mux.POST("/api/login/account", accounts.Login)
+	mux.POST("/api/login", accounts.Login)
 
 	// scan
 	mux.GET("/scan/:uuid", scan.Scan)
