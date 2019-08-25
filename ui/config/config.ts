@@ -213,6 +213,19 @@ export default {
               ],
             },
             {
+              path: '/collections',
+              icon: 'table',
+              name: 'collections',
+              component: './collections',
+              routes: [
+                {
+                  path: '/collections/list',
+                  name: 'list',
+                  component: './collections',
+                },
+              ],
+            },
+            {
               path: '/profile',
               name: 'profile',
               icon: 'profile',
