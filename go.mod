@@ -16,8 +16,6 @@ require (
 	github.com/elazarl/go-bindata-assetfs v1.0.0
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/golang/mock v1.1.1 // indirect
-	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.2.0 // indirect
 	github.com/gosimple/slug v1.6.0
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
@@ -32,7 +30,7 @@ require (
 	github.com/ory/ladon v0.8.10
 	github.com/ory/pagination v0.0.1 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/prometheus/client_golang v1.0.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20190717103323-87ce952f7079 // indirect
 	github.com/satori/go.uuid v1.2.0
@@ -42,11 +40,8 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
 	gocv.io/x/gocv v0.17.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
-	google.golang.org/appengine v1.1.0 // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/gorp.v1 v1.7.2 // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.3.0
 	gotest.tools v2.2.0+incompatible // indirect
 )
