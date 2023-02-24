@@ -42,9 +42,8 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
 	gocv.io/x/gocv v0.17.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/net v0.7.0 // indirect
 	google.golang.org/appengine v1.1.0 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/yaml.v2 v2.2.2
