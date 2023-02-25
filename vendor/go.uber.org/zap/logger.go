@@ -289,12 +289,12 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 	}
 
 	// Thread the error output through to the CheckedEntry.
-	ce.ErrorOutput = log.DebugOutput
+	ce.ErrorOutput = log.errorOutput
 	if log.addCaller {
 		ce.Entry.Caller = zapcore.NewEntryCaller(runtime.Caller(log.callerSkip + callerSkipOffset))
 		if !ce.Entry.Caller.Defined {
-			fmt.Fprintf(log.DebugOutput, "%v Logger.check error: failed to get caller\n", time.Now().UTC())
-			log.DebugOutput.Sync()
+			fmt.Fprintf(log.errorOutput, "%v Logger.check error: failed to get caller\n", time.Now().UTC())
+			log.errorOutput.Sync()
 		}
 	}
 	if log.addStack.Enabled(ce.Entry.Level) {
